@@ -4,5 +4,6 @@
 
 ```
 source setup.sh
+root -l -b -q runEventDisplay.C
 ```
 

@@ -32,35 +32,95 @@
 #endif
 
 
-void DrawRegionLines(){
-  std::vector<TLine*> regionLines;
-  float etaValues[17] = { -3, -2.107, -1.74, -1.392, -1.044, -0.696, -0.348, 0,
-			  0.348, 0.696, 1.044, 1.392, 1.74, 2.107, 3 };//0.3508
-  float phiValues[18] =
-  {-2.965, -2.617, -2.268, -1.919, -1.570, -1.221, -0.872, -0.523, -0.174, 
-      0.174, 0.523, 0.872, 1.221, 1.570, 1.919, 2.268, 2.617, 2.965};
+void DrawCardLines(){
+  std::vector<TLine*> cardLines;
+  // float etaValues[17] = { -3, -2.107, -1.74, -1.392, -1.044, -0.696, -0.348, 0,
+  // 			  0.348, 0.696, 1.044, 1.392, 1.74, 2.107, 3 };//0.3508
+  // float phiValues[18] =
+  // {-2.965, -2.617, -2.268, -1.919, -1.570, -1.221, -0.872, -0.523, -0.174, 
+  //     0.174, 0.523, 0.872, 1.221, 1.570, 1.919, 2.268, 2.617, 2.965};
 
+  float etaValues[3] = { -1.479, 0, 1.479 };
+
+  float phiValues[19] =
+    { -3.142, -2.793, -2.443, -2.094, -1.745, -1.396, -1.047, -0.698, -0.349, 0.000, 
+      0.349, 0.698, 1.047, 1.396, 1.745, 2.094, 2.443, 2.793, 3.142};
+  
   //eta lines
-  for(int i = 0; i < 17; i++){
+  for(int i = 0; i < 3; i++){
     TLine * line = new TLine(etaValues[i], -3.2, etaValues[i], 3.2); 
-    line->SetLineColor(kBlue-7);
+    line->SetLineColor(kRed);
     line->SetLineStyle(1);
-    regionLines.push_back(line);
+    line->SetLineWidth(2);
+    cardLines.push_back(line);
   }
 
   //phi lines
-  for(int i = 0; i < 18; i++){
+  for(int i = 0; i < 19; i++){
     TLine * line = new TLine(-3, phiValues[i], 3, phiValues[i]); 
-    line->SetLineColor(kBlue-7);
+    line->SetLineColor(kRed);
     line->SetLineStyle(1);
-    regionLines.push_back(line);
+    line->SetLineWidth(2);
+    cardLines.push_back(line);
   }
 
-  for(size_t j = 0; j < regionLines.size(); j++){
-    regionLines.at(j)->Draw();
+  for(size_t j = 0; j < cardLines.size(); j++){
+    cardLines.at(j)->Draw();
   }
 }
 
+
+/*
+ * Draw ECAL region lines.
+ */
+void DrawRegionLines(){
+
+  std::vector<TLine*> RegionLines;
+  float etaValues[13] = { -1.479, // -1.392,
+                          -1.305, // -1.218, -1.131,
+                          -1.044, // -0.957, -0.87,
+                          -0.783, // -0.696, -0.609, 
+                          -0.522, // -0.435, -0.348,
+                          -0.261, // -0.174, -0.087, 
+                          0,      // 0.087, 0.174,
+                          0.261,  // 0.348, 0.435,
+                          0.522,  // 0.609, 0.696,
+                          0.783,  // 0.87, 0.957,
+                          1.044,  // 1.131, 1.218,
+                          1.305,  // 1.392, 
+                          1.479
+  };
+
+  float phiValues[19] =
+    { -3.142, -2.793, -2.443, -2.094, -1.745, -1.396, -1.047, -0.698, -0.349, 0.000,
+      0.349, 0.698, 1.047, 1.396, 1.745, 2.094, 2.443, 2.793, 3.142};
+
+  //eta lines
+  for(int i = 0; i < 13; i++){
+    TLine * line = new TLine(etaValues[i], -3.2, etaValues[i], 3.2); 
+    line->SetLineColor(kBlue);
+    line->SetLineStyle(1);
+    RegionLines.push_back(line);
+  }
+
+  //phi lines
+  for(int i = 0; i < 19; i++){
+    TLine * line = new TLine(-3, phiValues[i], 3, phiValues[i]); 
+    line->SetLineColor(kBlue);
+    line->SetLineStyle(1);
+    RegionLines.push_back(line);
+  }
+
+  for(size_t j = 0; j < RegionLines.size(); j++){
+    RegionLines.at(j)->Draw();
+  }
+
+
+}
+
+/*
+ * Draw tower lines.
+ */
 void DrawTowerLines(){
   std::vector<TLine*> TowerLines;
   float etaValues[59] = { -3, -2.826, -2.652, -2.478, -2.304, -2.107, -2.0207, -1.93, -1.83, -1.74, -1.653, -1.566, -1.479, -1.392, -1.305, -1.218, -1.131, -1.044, -0.957, -0.87, -0.783, -0.696, -0.609, -0.522, -0.435, -0.348, -0.261, -0.174, -0.087, 0, 0.087, 0.174, 0.261, 0.348, 0.435, 0.522, 0.609, 0.696, 0.783, 0.87, 0.957, 1.044, 1.131, 1.218, 1.305, 1.392, 1.479, 1.566, 1.653, 1.74, 1.83, 1.93, 2.0207, 2.107, 2.304, 2.478, 2.652, 2.826, 3};
@@ -92,8 +152,10 @@ void DrawTowerLines(){
 void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   
   gStyle->SetOptStat(0);
-
+  
+  
   TFile *f = TFile::Open("L1EventDisplay.root","READ");
+  //  TFile *f = TFile::Open("L1EventDisplay-cmssw.root", "READ");
   
   if (!f) { return; }
 
@@ -210,6 +272,7 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   h2->Draw();
   
 
+  DrawCardLines();
   DrawRegionLines();
   DrawTowerLines();
 
@@ -271,6 +334,7 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   Double_t ymaxLimit = h2->GetMaximum();
 
 
+  DrawCardLines();
   DrawRegionLines();
   DrawTowerLines();
   float eta2=  -0.9135;
@@ -279,9 +343,14 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   h2->GetYaxis()->SetRangeUser(phi2 - 0.45, phi2 + 0.45);
 
   char* saveFile = new char[100];
-  sprintf(saveFile,"Events/Event-%u.png",event);
+  //  sprintf(saveFile,"Events/Event-%u.png",event);
+  sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u.png",event);
   
   c1->SaveAs(saveFile);
+
+  sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u.pdf",event);
+  c1->SaveAs(saveFile);
+
 
 
 }
