@@ -155,9 +155,10 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   
   gStyle->SetOptStat(0);
   
-  
-  TFile *f = TFile::Open("L1EventDisplay.root","READ");
-  // TFile *f = TFile::Open("L1EventDisplay-cmssw.root", "READ");
+  float half_tower_offset = 0.04365;
+
+  //TFile *f = TFile::Open("L1EventDisplay.root","READ");
+  TFile *f = TFile::Open("L1EventDisplay-cmssw.root", "READ");
   
   if (!f) { return; }
 
@@ -192,9 +193,19 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   // Create one histograms
   TH1F   *h                = new TH1F("h","This is the eta distribution",100,-4,4);
   TH2F   *h2;//               = new TH2F("h2","Event 2988846758",68,-3.117,3.117,72,-3.142,3.142);
-  TH2F   *h2EcalTpgs       = new TH2F("h2L1EcalCrystals","h2 title",(136*2),-3.117,3.117,(144*2),-3.142,3.142);
-  TH2F   *h2HcalTpgs       = new TH2F("h2HcalTpgs","Event Display",68,-3.117,3.117,72,-3.142,3.142);
-  TH2F   *h2L1Clusters  = new TH2F("h2L1EcalCrystals","Event Display",(136*2),-3.117,3.117,(144*2),-3.142,3.142); 
+  //  TH2F   *h2EcalTpgs       = new TH2F("h2L1EcalCrystals","h2 title",(136*2),-3.117,3.117,(144*2),-3.142,3.142);
+  TH2F   *h2EcalTpgs       = new TH2F("h2L1EcalCrystals","h2 title",(136*2),
+				      -3.117 + half_tower_offset,
+				      3.117  + half_tower_offset,
+				      (144*2),-3.142,3.142);
+  TH2F   *h2HcalTpgs       = new TH2F("h2HcalTpgs","Event Display",68,
+				      -3.117 + half_tower_offset,
+				      3.117  + half_tower_offset,
+				      72,-3.142,3.142);
+  TH2F   *h2L1Clusters  = new TH2F("h2L1EcalCrystals","Event Display",(136*2),
+				   -3.117 + half_tower_offset,
+				   3.117 + half_tower_offset,
+				   (144*2),-3.142,3.142); 
   TH2F   *h2L1EcalCrystals;//  = new TH2F("h2L1EcalCrystals","h2 title",(136*2),-3.117,3.117,(144*2),-3.142,3.142);
   
   h->SetFillColor(48);
@@ -254,12 +265,21 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
     
   }
 
+  // const static float half_crystal_size = 0.00873;
+
+
   double hcalMinPt = 1.5;
   std::cout << "[INFO:] plotEventDisplayPhaseIIecalCrystals.C: do not show HCAL TPGs with energy under "
 	    << hcalMinPt << " GeV" << std::endl;
+  std::cout << "[INFO:] plotEventDisplayPhaseIIecalCrystals.C: adding half-tower-size eta offset "
+	    << half_tower_offset << " to HCAL TPGs" << std::endl;
   for (UInt_t j = 0; j < vHcalTpgs->size(); ++j) {
     if(vHcalTpgs->at(j).Pt()>hcalMinPt)
-      h2HcalTpgs->Fill(vHcalTpgs->at(j).Eta(), vHcalTpgs->at(j).Phi(), vHcalTpgs->at(j).Pt());
+      // h2HcalTpgs->Fill(vHcalTpgs->at(j).Eta(), vHcalTpgs->at(j).Phi(), vHcalTpgs->at(j).Pt());
+      
+      // For visual clarity, add offset in eta
+      h2HcalTpgs->Fill(vHcalTpgs->at(j).Eta() + half_tower_offset,
+		       vHcalTpgs->at(j).Phi(), vHcalTpgs->at(j).Pt());
 
     if(vHcalTpgs->at(j).Pt()>10){
       std::cout<<"vHcalTpgs->at(j).Pt() "<<vHcalTpgs->at(j).Pt()
@@ -362,6 +382,11 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   float phi2= 1.87623;
   h2->GetXaxis()->SetRangeUser(eta2 - 0.45, eta2 + 0.45);
   h2->GetYaxis()->SetRangeUser(phi2 - 0.45, phi2 + 0.45);
+
+  // float eta2 = 0;
+  // float phi2 = 0;
+  // h2->GetXaxis()->SetRangeUser(eta2 - 0.90, eta2 + 0.90);
+  // h2->GetYaxis()->SetRangeUser(phi2 - 0.90, phi2 + 0.90);
 
   char* saveFile = new char[100];
   sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u.png",event);
