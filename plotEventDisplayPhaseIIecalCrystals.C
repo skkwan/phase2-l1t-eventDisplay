@@ -157,8 +157,8 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   
   float half_tower_offset = 0.04365;
 
-  //TFile *f = TFile::Open("L1EventDisplay.root","READ");
-  TFile *f = TFile::Open("L1EventDisplay-cmssw.root", "READ");
+  TFile *f = TFile::Open("L1EventDisplay.root","READ");
+  //TFile *f = TFile::Open("L1EventDisplay-cmssw.root", "READ");
   
   if (!f) { return; }
 
@@ -194,17 +194,17 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   TH1F   *h                = new TH1F("h","This is the eta distribution",100,-4,4);
   TH2F   *h2;//               = new TH2F("h2","Event 2988846758",68,-3.117,3.117,72,-3.142,3.142);
   //  TH2F   *h2EcalTpgs       = new TH2F("h2L1EcalCrystals","h2 title",(136*2),-3.117,3.117,(144*2),-3.142,3.142);
-  TH2F   *h2EcalTpgs       = new TH2F("h2L1EcalCrystals","h2 title",(136*2),
-				      -3.117 + half_tower_offset,
-				      3.117  + half_tower_offset,
+  TH2F   *h2EcalTpgs       = new TH2F("h2L1EcalCrystals","h2 title",(64*2),
+				      -1.4841,
+				      1.4841,
 				      (144*2),-3.142,3.142);
-  TH2F   *h2HcalTpgs       = new TH2F("h2HcalTpgs","Event Display",68,
-				      -3.117 + half_tower_offset,
-				      3.117  + half_tower_offset,
+  TH2F   *h2HcalTpgs       = new TH2F("h2HcalTpgs","Event Display",34,
+				      -1.4841,
+				      1.4841,
 				      72,-3.142,3.142);
-  TH2F   *h2L1Clusters  = new TH2F("h2L1EcalCrystals","Event Display",(136*2),
-				   -3.117 + half_tower_offset,
-				   3.117 + half_tower_offset,
+  TH2F   *h2L1Clusters  = new TH2F("h2L1EcalCrystals","Event Display",(64*2),
+				   -1.4841,
+				   1.4841,
 				   (144*2),-3.142,3.142); 
   TH2F   *h2L1EcalCrystals;//  = new TH2F("h2L1EcalCrystals","h2 title",(136*2),-3.117,3.117,(144*2),-3.142,3.142);
   
