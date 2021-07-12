@@ -149,13 +149,15 @@ void DrawTowerLines(){
     TowerLines.at(j)->Draw();
   }
 }
+
+
 void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   
   gStyle->SetOptStat(0);
   
   
   TFile *f = TFile::Open("L1EventDisplay.root","READ");
-  //  TFile *f = TFile::Open("L1EventDisplay-cmssw.root", "READ");
+  // TFile *f = TFile::Open("L1EventDisplay-cmssw.root", "READ");
   
   if (!f) { return; }
 
@@ -218,38 +220,45 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   int k = 0;
 
 
+  double ecalMinPt = 0.5;   // in GeV
+  std::cout << "[INFO:] plotEventDisplayPhaseIIecalCrystals.C: do not show ECAL TPGs with energy under "
+	    << ecalMinPt << " GeV..." << std::endl;
+
   for (UInt_t j = 0; j < vEcalTpgs->size(); ++j) {
     double eta = vEcalTpgs->at(j).Eta();
     double phi = vEcalTpgs->at(j).Phi();
     double pt  = vEcalTpgs->at(j).Pt();
-    //if(pt>1)
+    if(pt >= ecalMinPt) {
       h2EcalTpgs->Fill(eta, phi, pt);
-
-    if(pt>5){
-      std::cout<<"vEcalTpgs->at(j).Pt() "<<vEcalTpgs->at(j).Pt()
-	       <<" eta "<<vEcalTpgs->at(j).Eta()
-	       <<" phi "<<vEcalTpgs->at(j).Phi()<<std::endl;
+      
+      // std::cout<<"vEcalTpgs->at(j).Pt() "<<vEcalTpgs->at(j).Pt()
+      // 	       <<" eta "<<vEcalTpgs->at(j).Eta()
+      // 	       <<" phi "<<vEcalTpgs->at(j).Phi()<<std::endl;
       
       
       std::ostringstream strs;
       strs << pt;
       /*
-      std::string text = strs.str();
-      eta += 0.01;
-      phi += 0.01;
-      TPaveText *tempText = new TPaveText( eta, phi, eta+0.1, phi+0.1 );
-      tempText->AddText(text.c_str());
-      tempText->SetFillColor(0);
-      tempText->SetLineColor(0);
-      tempText->SetShadowColor(0);
-      tempText->SetTextColor(kBlue);
-      ecalTpgText.push_back(tempText);
+	std::string text = strs.str();
+	eta += 0.01;
+	phi += 0.01;
+	TPaveText *tempText = new TPaveText( eta, phi, eta+0.1, phi+0.1 );
+	tempText->AddText(text.c_str());
+	tempText->SetFillColor(0);
+	tempText->SetLineColor(0);
+	tempText->SetShadowColor(0);
+	tempText->SetTextColor(kBlue);
+	ecalTpgText.push_back(tempText);
       */
     }
+    
   }
-  
+
+  double hcalMinPt = 1.5;
+  std::cout << "[INFO:] plotEventDisplayPhaseIIecalCrystals.C: do not show HCAL TPGs with energy under "
+	    << hcalMinPt << " GeV" << std::endl;
   for (UInt_t j = 0; j < vHcalTpgs->size(); ++j) {
-    if(vHcalTpgs->at(j).Pt()>1.5)
+    if(vHcalTpgs->at(j).Pt()>hcalMinPt)
       h2HcalTpgs->Fill(vHcalTpgs->at(j).Eta(), vHcalTpgs->at(j).Phi(), vHcalTpgs->at(j).Pt());
 
     if(vHcalTpgs->at(j).Pt()>10){
@@ -262,7 +271,19 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
 
   
   for (UInt_t j = 0; j < vClusters->size(); ++j) {
+    float ceta = vClusters->at(j).Eta();
+    float cphi = vClusters->at(j).Phi();
+    float cpt  = vClusters->at(j).Pt();
+    
     h2L1Clusters->Fill(vClusters->at(j).Eta(), vClusters->at(j).Phi(), vClusters->at(j).Pt());
+    
+    if ((ceta > (-0.9135 -0.45)) && (ceta < (-0.9135 + 0.45)) 
+	&& (cphi > (1.87623-0.45)) && (cphi < (1.87623 + 0.45))) {
+      
+      std::cout<<"vClusters->at(j).Pt() "<< vClusters->at(j).Pt()                                                                                         
+	       <<" eta "<<vClusters->at(j).Eta()                                                                                                    
+	       <<" phi "<<vClusters->at(j).Phi()<<std::endl;   
+    }
   }
 
 
@@ -343,7 +364,6 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   h2->GetYaxis()->SetRangeUser(phi2 - 0.45, phi2 + 0.45);
 
   char* saveFile = new char[100];
-  //  sprintf(saveFile,"Events/Event-%u.png",event);
   sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u.png",event);
   
   c1->SaveAs(saveFile);
