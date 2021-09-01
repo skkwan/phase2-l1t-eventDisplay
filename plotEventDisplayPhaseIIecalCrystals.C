@@ -158,9 +158,9 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   // float half_tower_offset = 0.04365;
   float half_tower_offset = 0.0;
 
-  //TFile *f = TFile::Open("L1EventDisplay.root","READ");
+  TFile *f = TFile::Open("L1EventDisplay.root","READ"); 
   //TFile *f = TFile::Open("L1EventDisplay-cmssw.root", "READ");
-  TFile *f = TFile::Open("L1EventDisplay-cmssw-withCalibration.root", "READ");
+  //TFile *f = TFile::Open("L1EventDisplay-cmssw-withCalibration.root", "READ");
   
   if (!f) { return; }
 
@@ -169,6 +169,7 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   std::vector<TLorentzVector> *vEcalTpgs       = 0;
   std::vector<TLorentzVector> *vHcalTpgs       = 0;
   std::vector<TLorentzVector> *vClusters       = 0;
+  std::vector<TLorentzVector> *vTowers         = 0;
 
   int event =0;
 
@@ -184,30 +185,36 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   TBranch *bEvent            = 0;      
   TBranch *bEcalTpgs         = 0;
   TBranch *bHcalTpgs         = 0;
-  TBranch *bClusters     = 0;
+  TBranch *bClusters = 0;
+  TBranch *bTowers   = 0;
 
   t->SetBranchAddress("event",&event,&bEvent);
 
   t->SetBranchAddress("ecalTPGs",&vEcalTpgs,&bEcalTpgs);
   t->SetBranchAddress("hcalTPGs",&vHcalTpgs,&bHcalTpgs);
   t->SetBranchAddress("ecalClusters",&vClusters,&bClusters);
+  t->SetBranchAddress("caloTowers",&vTowers,&bTowers);
 
   // Create one histograms
   TH1F   *h                = new TH1F("h","This is the eta distribution",100,-4,4);
   TH2F   *h2;//               = new TH2F("h2","Event 2988846758",68,-3.117,3.117,72,-3.142,3.142);
   //  TH2F   *h2EcalTpgs       = new TH2F("h2L1EcalCrystals","h2 title",(136*2),-3.117,3.117,(144*2),-3.142,3.142);
-  TH2F   *h2EcalTpgs       = new TH2F("h2L1EcalCrystals","h2 title",(90*2), //64*2
-				      -1.4841,
-				      1.4841,
-				      (144*2),-3.142,3.142);
+  TH2F   *h2EcalTpgs       = new TH2F("h2L1EcalCrystals","h2 title",(34*5), //(90*2), //64*2
+				      -1.4841, 1.4841,
+				      (72*5), // (144*2),
+				      -3.142,3.142);
   TH2F   *h2HcalTpgs       = new TH2F("h2HcalTpgs","Event Display",34,
-				      -1.4841,
-				      1.4841,
-				      72,-3.142,3.142);
-  TH2F   *h2L1Clusters  = new TH2F("h2L1EcalCrystals","Event Display",(90*2),
-				   -1.4841,
-				   1.4841,
-				   (144*2),-3.142,3.142); 
+				      -1.4841, 1.4841,
+				      72,
+				      -3.142,3.142);
+  TH2F   *h2L1Clusters  = new TH2F("h2L1EcalCrystals","Event Display", (34*5), //(90*2),
+				   -1.4841, 1.4841,
+				   (72*5),//(144*2),
+				   -3.142,3.142); 
+  TH2F   *h2L1Towers    = new TH2F("h2L1Towers", "Event Display", 34,
+				   -1.4841, 1.4841,
+				   72,
+				   -3.142,3.142);
   TH2F   *h2L1EcalCrystals;//  = new TH2F("h2L1EcalCrystals","h2 title",(136*2),-3.117,3.117,(144*2),-3.142,3.142);
   
   h->SetFillColor(48);
@@ -218,8 +225,8 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   bEvent->GetEntry(tentry);
   bEcalTpgs->GetEntry(tentry);
   bHcalTpgs->GetEntry(tentry);
-
   bClusters->GetEntry(tentry);
+  bTowers->GetEntry(tentry);
 
   //get the event number
   char* name = new char[30];
@@ -283,15 +290,26 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
       h2HcalTpgs->Fill(vHcalTpgs->at(j).Eta() + half_tower_offset,
 		       vHcalTpgs->at(j).Phi(), vHcalTpgs->at(j).Pt());
 
-    if(vHcalTpgs->at(j).Pt()>10){
-      std::cout<<"vHcalTpgs->at(j).Pt() "<<vHcalTpgs->at(j).Pt()
-	       <<" eta "<<vHcalTpgs->at(j).Eta()
-	       <<" phi "<<vHcalTpgs->at(j).Phi()<<std::endl;
-    }
+    // if(vHcalTpgs->at(j).Pt()>10){
+    //   std::cout<<"vHcalTpgs->at(j).Pt() "<<vHcalTpgs->at(j).Pt()
+    // 	       <<" eta "<<vHcalTpgs->at(j).Eta()
+    // 	       <<" phi "<<vHcalTpgs->at(j).Phi()<<std::endl;
+    // }
     //std::cout<<"vHcalTpgs->at(j).Pt() "<<vHcalTpgs->at(j).Pt()<<std::endl;
+
+    float ceta = vHcalTpgs->at(j).Eta();
+    float cphi = vHcalTpgs->at(j).Phi();
+    float cpt  = vHcalTpgs->at(j).Pt();
+    if ((ceta > (-1.05)) && (ceta < (-0.780))
+	&& (cphi > (1.75)) && (cphi < (2.1))) {
+      std::cout<<"vHcalTpgs->at(j).Pt() "<< vHcalTpgs->at(j).Pt()
+               <<" eta "<<vHcalTpgs->at(j).Eta()
+               <<" phi "<<vHcalTpgs->at(j).Phi()<<std::endl;
+    }
+
   }
 
-  
+  // Get the clusters
   for (UInt_t j = 0; j < vClusters->size(); ++j) {
     float ceta = vClusters->at(j).Eta();
     float cphi = vClusters->at(j).Phi();
@@ -299,15 +317,30 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
     
     h2L1Clusters->Fill(vClusters->at(j).Eta(), vClusters->at(j).Phi(), vClusters->at(j).Pt());
     
-    if ((ceta > (-0.9135 -0.45)) && (ceta < (-0.9135 + 0.45)) 
-	&& (cphi > (1.87623-0.45)) && (cphi < (1.87623 + 0.45))) {
-      
-      std::cout<<"vClusters->at(j).Pt() "<< vClusters->at(j).Pt()                                                                                         
-	       <<" eta "<<vClusters->at(j).Eta()                                                                                                    
+    // if ((ceta > (-0.9135 -0.45)) && (ceta < (-0.9135 + 0.45)) 
+    // 	&& (cphi > (1.87623-0.45)) && (cphi < (1.87623 + 0.45))) {
+    if ((ceta > (-1.05)) && (ceta < (-0.780))
+	&& (cphi > (1.75)) && (cphi < (2.1))) {
+      std::cout<<"vClusters->at(j).Pt() "<< vClusters->at(j).Pt()              
+	       <<" eta "<<vClusters->at(j).Eta()                           
 	       <<" phi "<<vClusters->at(j).Phi()<<std::endl;   
     }
   }
 
+  // Get the towers
+  for (UInt_t j = 0; j < vTowers->size(); ++j) {
+    h2L1Towers->Fill(vTowers->at(j).Eta(), vTowers->at(j).Phi(), vTowers->at(j).Pt());
+    float ceta = vTowers->at(j).Eta();
+    float cphi = vTowers->at(j).Phi();
+    float cpt  = vTowers->at(j).Pt();
+    if ((ceta > (-1.05)) && (ceta < (-0.780))
+       && (cphi > (1.75)) && (cphi < (2.1))) {
+
+      std::cout<<"vTowers->at(j).Pt() "<< vTowers->at(j).Pt()
+               <<" eta "<<vTowers->at(j).Eta()
+               <<" phi "<<vTowers->at(j).Phi()<<std::endl;
+    }
+  }
 
   h2 = (TH2F*)h2HcalTpgs->Clone(); 
   h2->GetXaxis()->SetAxisColor(17);
@@ -319,36 +352,51 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   DrawRegionLines();
   DrawTowerLines();
 
-  TH2F* h2HcalTpgs2 = (TH2F*)h2HcalTpgs->Clone(); 
-  h2HcalTpgs->SetFillColor(kMagenta);
-  h2HcalTpgs->SetFillStyle(3141);
-  h2HcalTpgs->SetFillColorAlpha(kMagenta, 0.75);
-  h2HcalTpgs->Draw("SAME BOX");
+  // Plot the HCAL TPGs (first, clone to plot the border)                                                 
+  TH2F* h2HcalTpgs2 = (TH2F*)h2HcalTpgs->Clone();
+  h2HcalTpgs->SetFillStyle(1001);
+  h2HcalTpgs->SetFillColorAlpha(kCyan-10, 0.9);
+  //h2HcalTpgs->Draw("SAME BOX");
   h2HcalTpgs2->SetLineColor(kBlack);
-  h2HcalTpgs2->SetLineWidth(3);
-  h2HcalTpgs2->Draw("SAME BOXL");
+  h2HcalTpgs2->SetLineWidth(1);
+  //h2HcalTpgs2->Draw("SAME BOXL");
 
+  // Plot the towers                                                                                       
+  TH2F* h2L1Towers2 = (TH2F*)h2L1Towers->Clone();
+  h2L1Towers->SetFillStyle(3144);
+  h2L1Towers->SetFillColorAlpha(kPink+1, 0.90);
+  h2L1Towers->Draw("SAME BOX");
+  h2L1Towers2->SetLineColor(kPink+1);
+  h2L1Towers2->SetLineWidth(1);
+  h2L1Towers2->Draw("SAME BOXL");
 
-  //h2EcalTpgs->SetFillColor(kRed);
+  // Plot the ECAL crystals (TPGs)
   TH2F* h2EcalTpgs2 = (TH2F*)h2EcalTpgs->Clone(); 
-  h2EcalTpgs->SetFillColorAlpha(kRed, 0.55);
+  h2EcalTpgs->SetFillStyle(1001);
+  h2EcalTpgs->SetFillColorAlpha(kCyan-4, 1.0);
   h2EcalTpgs->Draw("SAME BOX");
   h2EcalTpgs2->SetLineColor(kBlack);
-  h2EcalTpgs2->SetLineWidth(3);
+  h2EcalTpgs2->SetLineWidth(1);
   h2EcalTpgs2->Draw("SAME BOXL");
 
-  //h2CaloClusters->SetFillColor(kOrange);
+  // Plot the clusters
+  TH2F* h2L1Clusters2 = (TH2F*)h2L1Clusters->Clone();
   h2L1Clusters->SetFillStyle(3144);
-  h2L1Clusters->SetFillColorAlpha(kGreen, 0.75);
+  h2L1Clusters->SetFillColorAlpha(kOrange+10, 0.75);
   h2L1Clusters->Draw("SAME BOX");
 
-  float xR=0.75;
-  TLegend *l = new TLegend(xR,0.85,xR+0.25,1.0);
+  //h2L1Clusters2->SetLineColor(kOrange+10);
+  //h2L1Clusters2->SetLineWidth(1);
+  //h2L1Clusters2->Draw("SAME BOXL");
+
+  float xR=0.70;
+  TLegend *l = new TLegend(xR,0.80,xR+0.30,1.0);
   l->SetTextSize(0.035);
 
-  l->AddEntry(h2EcalTpgs,"ECAL TPGs","F");
-  l->AddEntry(h2HcalTpgs,"HCAL TPGs","F");
-  l->AddEntry(h2L1Clusters,"ECAL Clusters","F");
+  l->AddEntry(h2EcalTpgs,   "ECAL Crystals",   "F");
+  l->AddEntry(h2HcalTpgs,   "HCAL Towers",     "F");
+  l->AddEntry(h2L1Clusters, "Clusters out", "F");
+  l->AddEntry(h2L1Towers,   "Towers out",   "F");
   l->Draw();
   h2->GetXaxis()->SetTitle("#eta");
   h2->GetYaxis()->SetTitle("#phi");
@@ -382,13 +430,10 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   DrawTowerLines();
   float eta2=  -0.9135;
   float phi2= 1.87623;
+  // float eta2 = -0.9135;
+  // float phi2 = -2.62;
   h2->GetXaxis()->SetRangeUser(eta2 - 0.45, eta2 + 0.45);
   h2->GetYaxis()->SetRangeUser(phi2 - 0.45, phi2 + 0.45);
-
-  // float eta2 = 0;
-  // float phi2 = 0;
-  // h2->GetXaxis()->SetRangeUser(eta2 - 0.90, eta2 + 0.90);
-  // h2->GetYaxis()->SetRangeUser(phi2 - 0.90, phi2 + 0.90);
 
   char* saveFile = new char[100];
   sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u.png",event);
