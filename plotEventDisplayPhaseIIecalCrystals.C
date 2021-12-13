@@ -35,7 +35,7 @@
 void DrawCardLines(){
   std::vector<TLine*> cardLines;
   // float etaValues[17] = { -3, -2.107, -1.74, -1.392, -1.044, -0.696, -0.348, 0,
-  // 			  0.348, 0.696, 1.044, 1.392, 1.74, 2.107, 3 };//0.3508
+  //   0.348, 0.696, 1.044, 1.392, 1.74, 2.107, 3 };//0.3508
   // float phiValues[18] =
   // {-2.965, -2.617, -2.268, -1.919, -1.570, -1.221, -0.872, -0.523, -0.174, 
   //     0.174, 0.523, 0.872, 1.221, 1.570, 1.919, 2.268, 2.617, 2.965};
@@ -199,7 +199,7 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   TH1F   *h                = new TH1F("h","This is the eta distribution",100,-4,4);
   TH2F   *h2;//               = new TH2F("h2","Event 2988846758",68,-3.117,3.117,72,-3.142,3.142);
   //  TH2F   *h2EcalTpgs       = new TH2F("h2L1EcalCrystals","h2 title",(136*2),-3.117,3.117,(144*2),-3.142,3.142);
-  TH2F   *h2EcalTpgs       = new TH2F("h2L1EcalCrystals","h2 title",(34*5), //(90*2), //64*2
+  TH2F   *h2EcalTpgs       = new TH2F("h2L1EcalCrystals","Event Display",(34*5), //(90*2), //64*2
 				      -1.4841, 1.4841,
 				      (72*5), // (144*2),
 				      -3.142,3.142);
@@ -251,9 +251,9 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
     if(pt >= ecalMinPt) {
       h2EcalTpgs->Fill(eta, phi, pt);
       
-      // std::cout<<"vEcalTpgs->at(j).Pt() "<<vEcalTpgs->at(j).Pt()
-      // 	       <<" eta "<<vEcalTpgs->at(j).Eta()
-      // 	       <<" phi "<<vEcalTpgs->at(j).Phi()<<std::endl;
+      std::cout<<"vEcalTpgs->at(j).Pt() "<<vEcalTpgs->at(j).Pt()
+             <<" eta "<<vEcalTpgs->at(j).Eta()
+             <<" phi "<<vEcalTpgs->at(j).Phi()<<std::endl;
       
       
       std::ostringstream strs;
@@ -277,35 +277,35 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   // const static float half_crystal_size = 0.00873;
 
 
-  double hcalMinPt = 1.5;
+  // double hcalMinPt = 1.5;
+  double hcalMinPt = 0;
   std::cout << "[INFO:] plotEventDisplayPhaseIIecalCrystals.C: do not show HCAL TPGs with energy under "
 	    << hcalMinPt << " GeV" << std::endl;
   std::cout << "[INFO:] plotEventDisplayPhaseIIecalCrystals.C: adding half-tower-size eta offset "
 	    << half_tower_offset << " to HCAL TPGs" << std::endl;
   for (UInt_t j = 0; j < vHcalTpgs->size(); ++j) {
-    if(vHcalTpgs->at(j).Pt()>hcalMinPt)
+    if(vHcalTpgs->at(j).Pt()>hcalMinPt) {
       // h2HcalTpgs->Fill(vHcalTpgs->at(j).Eta(), vHcalTpgs->at(j).Phi(), vHcalTpgs->at(j).Pt());
       
       // For visual clarity, add offset in eta
       h2HcalTpgs->Fill(vHcalTpgs->at(j).Eta() + half_tower_offset,
 		       vHcalTpgs->at(j).Phi(), vHcalTpgs->at(j).Pt());
-
-    // if(vHcalTpgs->at(j).Pt()>10){
-    //   std::cout<<"vHcalTpgs->at(j).Pt() "<<vHcalTpgs->at(j).Pt()
-    // 	       <<" eta "<<vHcalTpgs->at(j).Eta()
-    // 	       <<" phi "<<vHcalTpgs->at(j).Phi()<<std::endl;
-    // }
-    //std::cout<<"vHcalTpgs->at(j).Pt() "<<vHcalTpgs->at(j).Pt()<<std::endl;
-
-    float ceta = vHcalTpgs->at(j).Eta();
-    float cphi = vHcalTpgs->at(j).Phi();
-    float cpt  = vHcalTpgs->at(j).Pt();
-    if ((ceta > (-1.05)) && (ceta < (-0.780))
-	&& (cphi > (1.75)) && (cphi < (2.1))) {
-      std::cout<<"vHcalTpgs->at(j).Pt() "<< vHcalTpgs->at(j).Pt()
-               <<" eta "<<vHcalTpgs->at(j).Eta()
-               <<" phi "<<vHcalTpgs->at(j).Phi()<<std::endl;
     }
+    if(vHcalTpgs->at(j).Pt()>hcalMinPt){
+      std::cout<<"vHcalTpgs->at(j).Pt() "<<vHcalTpgs->at(j).Pt()
+	       <<" eta "<<vHcalTpgs->at(j).Eta()
+	       <<" phi "<<vHcalTpgs->at(j).Phi()<<std::endl;
+    }
+
+    // float ceta = vHcalTpgs->at(j).Eta();
+    // float cphi = vHcalTpgs->at(j).Phi();
+    // float cpt  = vHcalTpgs->at(j).Pt();
+    // if ((ceta > (-1.05)) && (ceta < (-0.780))
+    // 	&& (cphi > (1.75)) && (cphi < (2.1))) {
+    //   std::cout<<"vHcalTpgs->at(j).Pt() "<< vHcalTpgs->at(j).Pt()
+    //            <<" eta "<<vHcalTpgs->at(j).Eta()
+    //            <<" phi "<<vHcalTpgs->at(j).Phi()<<std::endl;
+    // }
 
   }
 
@@ -318,31 +318,31 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
     h2L1Clusters->Fill(vClusters->at(j).Eta(), vClusters->at(j).Phi(), vClusters->at(j).Pt());
     
     // if ((ceta > (-0.9135 -0.45)) && (ceta < (-0.9135 + 0.45)) 
-    // 	&& (cphi > (1.87623-0.45)) && (cphi < (1.87623 + 0.45))) {
-    if ((ceta > (-1.05)) && (ceta < (-0.780))
-	&& (cphi > (1.75)) && (cphi < (2.1))) {
-      std::cout<<"vClusters->at(j).Pt() "<< vClusters->at(j).Pt()              
-	       <<" eta "<<vClusters->at(j).Eta()                           
-	       <<" phi "<<vClusters->at(j).Phi()<<std::endl;   
-    }
+    // && (cphi > (1.87623-0.45)) && (cphi < (1.87623 + 0.45))) {
+    // if ((ceta > (-1.05)) && (ceta < (-0.780))
+    // 	&& (cphi > (1.75)) && (cphi < (2.1))) {
+    std::cout<<"vClusters->at(j).Pt() "<< vClusters->at(j).Pt()              
+	     <<" eta "<<vClusters->at(j).Eta()                           
+	     <<" phi "<<vClusters->at(j).Phi()<<std::endl;   
+    //}
   }
-
+  
   // Get the towers
   for (UInt_t j = 0; j < vTowers->size(); ++j) {
     h2L1Towers->Fill(vTowers->at(j).Eta(), vTowers->at(j).Phi(), vTowers->at(j).Pt());
     float ceta = vTowers->at(j).Eta();
     float cphi = vTowers->at(j).Phi();
     float cpt  = vTowers->at(j).Pt();
-    if ((ceta > (-1.05)) && (ceta < (-0.780))
-       && (cphi > (1.75)) && (cphi < (2.1))) {
+    // if ((ceta > (-1.05)) && (ceta < (-0.780))
+    // 	&& (cphi > (1.75)) && (cphi < (2.1))) {
 
-      std::cout<<"vTowers->at(j).Pt() "<< vTowers->at(j).Pt()
-               <<" eta "<<vTowers->at(j).Eta()
-               <<" phi "<<vTowers->at(j).Phi()<<std::endl;
-    }
+    std::cout<<"vTowers->at(j).Pt() "<< vTowers->at(j).Pt()
+	     <<" eta "<<vTowers->at(j).Eta()
+	     <<" phi "<<vTowers->at(j).Phi()<<std::endl;
+    // }
   }
-
-  h2 = (TH2F*)h2HcalTpgs->Clone(); 
+  
+  h2 = (TH2F*)h2EcalTpgs->Clone();
   h2->GetXaxis()->SetAxisColor(17);
   h2->GetYaxis()->SetAxisColor(17);
   h2->Draw();
@@ -356,10 +356,10 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   TH2F* h2HcalTpgs2 = (TH2F*)h2HcalTpgs->Clone();
   h2HcalTpgs->SetFillStyle(1001);
   h2HcalTpgs->SetFillColorAlpha(kCyan-10, 0.9);
-  //h2HcalTpgs->Draw("SAME BOX");
+  h2HcalTpgs->Draw("SAME BOX");
   h2HcalTpgs2->SetLineColor(kBlack);
   h2HcalTpgs2->SetLineWidth(1);
-  //h2HcalTpgs2->Draw("SAME BOXL");
+  h2HcalTpgs2->Draw("SAME BOXL");
 
   // Plot the towers                                                                                       
   TH2F* h2L1Towers2 = (TH2F*)h2L1Towers->Clone();
@@ -385,9 +385,9 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   h2L1Clusters->SetFillColorAlpha(kOrange+10, 0.75);
   h2L1Clusters->Draw("SAME BOX");
 
-  //h2L1Clusters2->SetLineColor(kOrange+10);
-  //h2L1Clusters2->SetLineWidth(1);
-  //h2L1Clusters2->Draw("SAME BOXL");
+  h2L1Clusters2->SetLineColor(kOrange+10);
+  h2L1Clusters2->SetLineWidth(1);
+  h2L1Clusters2->Draw("SAME BOXL");
 
   float xR=0.70;
   TLegend *l = new TLegend(xR,0.80,xR+0.30,1.0);
@@ -400,9 +400,9 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   l->Draw();
   h2->GetXaxis()->SetTitle("#eta");
   h2->GetYaxis()->SetTitle("#phi");
-  h2HcalTpgs->GetXaxis()->SetTitle("#eta");
-  h2HcalTpgs->GetYaxis()->SetTitle("#phi");
 
+  h2EcalTpgs->GetXaxis()->SetTitle("#eta"); 
+  h2EcalTpgs->GetYaxis()->SetTitle("#phi");    
   
   /*
   for (UInt_t j = 0; j < ecalTpgText.size(); ++j) {
@@ -428,12 +428,12 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   DrawCardLines();
   DrawRegionLines();
   DrawTowerLines();
-  float eta2=  -0.9135;
-  float phi2= 1.87623;
+  float eta2= -1.07817;
+  float phi2= -2.40091;
   // float eta2 = -0.9135;
   // float phi2 = -2.62;
-  h2->GetXaxis()->SetRangeUser(eta2 - 0.45, eta2 + 0.45);
-  h2->GetYaxis()->SetRangeUser(phi2 - 0.45, phi2 + 0.45);
+  h2->GetXaxis()->SetRangeUser(eta2 - 0.1, eta2 + 0.1);
+  h2->GetYaxis()->SetRangeUser(phi2 - 0.1, phi2 + 0.1);
 
   char* saveFile = new char[100];
   sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u.png",event);
