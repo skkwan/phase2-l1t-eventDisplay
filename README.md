@@ -3,20 +3,25 @@
 ## Setup
 This repo runs independently of CMSSW; it only requires a ROOT v5 (see below on how to set that up on lxplus).
 
-## Each time you change the input n-tuple
-1. Refer to instructions in https://github.com/skkwan/phase2-l1Calo-analyzer on making the input n-tuples.
-2. Copy the input n-tuples to this working area.
-
+## Each time you change the input ROOT file
+1. Currently this event display only works for ROOT files that contain exactly one event. To select one GEN-SIM-RAW-DIGI event (with a specific
+   run/lumi/event), use the code in `pickEvent/` in the https://github.com/skkwan/phase2-l1Calo-analyzer repository.
+2. Refer to instructions in https://github.com/skkwan/phase2-l1Calo-analyzer on running the emulator on the GEN-SIM-RAW-DIGI event:
+   Specifically, you want `test-l1tEventDisplayGenerator.py` or `test-l1t-cmssw-EventDisplayGenerator.py` because
+   you want the output file to have the collections (not just the efficiencyTree n-tuple).
+3. This should produce a file called `L1EventDisplay.root` (or something similar). Copy that to this `eventDisplay` repository so we don't
+   accidentally overwrite it.
 
 ## Each time you run
-1. Edit `plotEventDisplayPhaseIIecalCrystals.C` to point to the correct input `.root` n-tuple.
+1. Edit `plotEventDisplayPhaseIIecalCrystals.C` to point to the correct input `.root` n-tuple, and edit `eta2` and `phi2` to 
+   center the output plot on the cluster that we want to look at.
 
 2. Source a cvmfs environment that has ROOT v5:
    ```
    source setup.sh   
    ```
 
-3. Then call the wrapper which calls the main plotting script:
+3. Then run this (`runEventDisplay.C` calls the main plotting script):
    ```
    root -l -b -q runEventDisplay.C
    ```
