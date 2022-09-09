@@ -158,10 +158,27 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   // float half_tower_offset = 0.04365;
   float half_tower_offset = 0.0;
 
-  TFile *f = TFile::Open("L1EventDisplay.root","READ"); 
-  //TFile *f = TFile::Open("L1EventDisplay-cmssw.root", "READ");
-  //TFile *f = TFile::Open("L1EventDisplay-cmssw-withCalibration.root", "READ");
-  
+  //TFile *f = TFile::Open("L1EventDisplay_1_62_6189.root", "READ");
+  // TFile *f = TFile::Open("L1EventDisplay_1_89_8878.root", "READ"); 
+  // TFile *f = TFile::Open("L1EventDisplay_1_23_2119.root", "READ");
+
+  // TFile *f = TFile::Open("L1EventDisplay-cmssw-1_62_6189.root", "READ");
+  //TFile *f = TFile::Open("L1EventDisplay-cmssw-1_59_5839.root", "READ");
+  // TFile *f = TFile::Open("L1EventDisplay-cmssw-1_89_8878.root", "READ"); 
+  // TFile *f = TFile::Open("L1EventDisplay_1_62_6189_newBrems.root", "READ");
+
+
+  // TFile *f = TFile::Open("L1EventDisplay_1_32_3102.root", "READ");
+  // TFile *f = TFile::Open("L1EventDisplay-cmssw-1_32_3102.root", "READ");
+  // TFile *f = TFile::Open("L1EventDisplay_1_32_3102_fixed_currentEmulator.root", "READ");
+
+  // TFile *f = TFile::Open("L1EventDisplay_1_32_3111.root", "READ");
+  TFile *f = TFile::Open("L1EventDisplay_1_32_3108.root", "READ");   
+
+  // Declare the center of the plot
+  float etaCenter = 0.27;
+  float phiCenter = -1.7889;
+
   if (!f) { return; }
 
   TTree *t = (TTree*) f->Get("l1NtupleProducer/efficiencyTree");
@@ -291,21 +308,23 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
       h2HcalTpgs->Fill(vHcalTpgs->at(j).Eta() + half_tower_offset,
 		       vHcalTpgs->at(j).Phi(), vHcalTpgs->at(j).Pt());
     }
-    if(vHcalTpgs->at(j).Pt()>hcalMinPt){
-      std::cout<<"vHcalTpgs->at(j).Pt() "<<vHcalTpgs->at(j).Pt()
-	       <<" eta "<<vHcalTpgs->at(j).Eta()
-	       <<" phi "<<vHcalTpgs->at(j).Phi()<<std::endl;
-    }
-
-    // float ceta = vHcalTpgs->at(j).Eta();
-    // float cphi = vHcalTpgs->at(j).Phi();
-    // float cpt  = vHcalTpgs->at(j).Pt();
-    // if ((ceta > (-1.05)) && (ceta < (-0.780))
-    // 	&& (cphi > (1.75)) && (cphi < (2.1))) {
-    //   std::cout<<"vHcalTpgs->at(j).Pt() "<< vHcalTpgs->at(j).Pt()
-    //            <<" eta "<<vHcalTpgs->at(j).Eta()
-    //            <<" phi "<<vHcalTpgs->at(j).Phi()<<std::endl;
+    // if(vHcalTpgs->at(j).Pt()>hcalMinPt){
+    //   std::cout<<"vHcalTpgs->at(j).Pt() "<<vHcalTpgs->at(j).Pt()
+    // 	       <<" eta "<<vHcalTpgs->at(j).Eta()
+    // 	       <<" phi "<<vHcalTpgs->at(j).Phi()<<std::endl;
     // }
+    
+    float ceta = vHcalTpgs->at(j).Eta();                                                                                                                                                   
+    float cphi = vHcalTpgs->at(j).Phi();                                                                                                                                                   
+    float cpt  = vHcalTpgs->at(j).Pt();
+    if ((ceta > (etaCenter - 0.25)) && (ceta < (etaCenter + 0.25))
+        && (cphi > (phiCenter - 0.25)) && (cphi < (phiCenter + 0.25))
+	&& (cpt > hcalMinPt)) {
+
+      std::cout<<"vHcalTpgs->at(j).Pt() "<< vHcalTpgs->at(j).Pt()
+               <<" eta "<<vHcalTpgs->at(j).Eta()
+               <<" phi "<<vHcalTpgs->at(j).Phi()<<std::endl;
+    }
 
   }
 
@@ -316,15 +335,18 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
     float cpt  = vClusters->at(j).Pt();
     
     h2L1Clusters->Fill(vClusters->at(j).Eta(), vClusters->at(j).Phi(), vClusters->at(j).Pt());
-    
-    // if ((ceta > (-0.9135 -0.45)) && (ceta < (-0.9135 + 0.45)) 
-    // && (cphi > (1.87623-0.45)) && (cphi < (1.87623 + 0.45))) {
-    // if ((ceta > (-1.05)) && (ceta < (-0.780))
-    // 	&& (cphi > (1.75)) && (cphi < (2.1))) {
-    std::cout<<"vClusters->at(j).Pt() "<< vClusters->at(j).Pt()              
-	     <<" eta "<<vClusters->at(j).Eta()                           
-	     <<" phi "<<vClusters->at(j).Phi()<<std::endl;   
-    //}
+
+
+    if ((ceta > (etaCenter - 0.25)) && (ceta < (etaCenter + 0.25))
+        && (cphi > (phiCenter - 0.25)) && (cphi < (phiCenter + 0.25)) ) {
+      // if ((ceta > (-0.9135 -0.45)) && (ceta < (-0.9135 + 0.45)) 
+      // && (cphi > (1.87623-0.45)) && (cphi < (1.87623 + 0.45))) {
+      // if ((ceta > (-1.05)) && (ceta < (-0.780))
+      // 	&& (cphi > (1.75)) && (cphi < (2.1))) {
+	std::cout<<"vClusters->at(j).Pt() "<< vClusters->at(j).Pt()              
+		 <<" eta "<<vClusters->at(j).Eta()                           
+		 <<" phi "<<vClusters->at(j).Phi()<<std::endl;   
+    }
   }
   
   // Get the towers
@@ -333,14 +355,16 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
     float ceta = vTowers->at(j).Eta();
     float cphi = vTowers->at(j).Phi();
     float cpt  = vTowers->at(j).Pt();
-    // if ((ceta > (-1.05)) && (ceta < (-0.780))
-    // 	&& (cphi > (1.75)) && (cphi < (2.1))) {
 
-    std::cout<<"vTowers->at(j).Pt() "<< vTowers->at(j).Pt()
-	     <<" eta "<<vTowers->at(j).Eta()
-	     <<" phi "<<vTowers->at(j).Phi()<<std::endl;
-    // }
+    if ((ceta > (etaCenter - 0.25)) && (ceta < (etaCenter + 0.25))
+     	&& (cphi > (phiCenter - 0.25)) && (cphi < (phiCenter + 0.25))) {
+      
+      std::cout<<"vTowers->at(j).Pt() "<< vTowers->at(j).Pt()
+	       <<" eta "<<vTowers->at(j).Eta()
+	       <<" phi "<<vTowers->at(j).Phi()<<std::endl;
+    }
   }
+  
   
   h2 = (TH2F*)h2EcalTpgs->Clone();
   h2->GetXaxis()->SetAxisColor(17);
@@ -428,19 +452,42 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   DrawCardLines();
   DrawRegionLines();
   DrawTowerLines();
-  float eta2= -1.07817;
-  float phi2= -2.40091;
-  // float eta2 = -0.9135;
-  // float phi2 = -2.62;
-  h2->GetXaxis()->SetRangeUser(eta2 - 0.1, eta2 + 0.1);
-  h2->GetYaxis()->SetRangeUser(phi2 - 0.1, phi2 + 0.1);
 
-  char* saveFile = new char[100];
-  sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u.png",event);
+
+  // float eta2 = -1.23093;
+  // float phi2 = -1.66679;
+
+  // 1_62_6189
+  // float eta2= 1.248;
+  // float phi2= 1.388;
+
+  // 1_32_3102 
+  //float eta2 = 0.77697;
+  // float phi2 = 2.34747;
+
+  // 1_89_8878
+  // float eta2 = 1.143;
+  // float phi2 = 2.417;
+
+  // 1_59_5839
+  //float eta2 = 0.428;
+  //float phi2 = 2.801;
   
+  //  float eta2 = 0.026;
+  //float phi2 = 1.387;
+
+  h2->GetXaxis()->SetRangeUser(etaCenter - 0.25, etaCenter + 0.25);
+  h2->GetYaxis()->SetRangeUser(phiCenter - 0.25, phiCenter + 0.25);
+  
+  char* saveFile = new char[100];
+  //  sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u-old_emulator.png",event);
+  
+  
+  sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u-current_emulator.png",event);
   c1->SaveAs(saveFile);
 
-  sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u.pdf",event);
+  // sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u-old_emulator.pdf",event);
+  sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u-current_emulator.pdf",event);
   c1->SaveAs(saveFile);
 
 
