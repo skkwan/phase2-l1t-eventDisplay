@@ -172,10 +172,13 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   // TFile *f = TFile::Open("L1EventDisplay-cmssw-1_32_3102.root", "READ");
   // TFile *f = TFile::Open("L1EventDisplay_1_32_3102_fixed_currentEmulator.root", "READ");
 
-  // TFile *f = TFile::Open("L1EventDisplay_1_32_3111.root", "READ");
   TFile *f = TFile::Open("L1EventDisplay_1_32_3108.root", "READ");   
+  // TFile *f = TFile::Open("L1EventDisplay-cmssw_1_32_3108.root", "READ"); 
 
-  // Declare the center of the plot
+  // CHANGE ME EACH TIME (affects output file names, will re-write)
+  bool isNewEmulator = true; 
+  
+  // CHANGE ME EACH TIME Declare the center of the plot
   float etaCenter = 0.27;
   float phiCenter = -1.7889;
 
@@ -480,14 +483,24 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   h2->GetYaxis()->SetRangeUser(phiCenter - 0.25, phiCenter + 0.25);
   
   char* saveFile = new char[100];
-  //  sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u-old_emulator.png",event);
-  
-  
-  sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u-current_emulator.png",event);
+
+  // PNG
+  if (isNewEmulator) {
+    sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u-current_emulator.png",event);
+  }
+  else {
+    sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u-old_emulator.png",event); 
+  }
   c1->SaveAs(saveFile);
 
-  // sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u-old_emulator.pdf",event);
-  sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u-current_emulator.pdf",event);
+
+  // PDF
+  if (isNewEmulator) {
+    sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u-current_emulator.pdf",event);  
+  }
+  else {
+    sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u-old_emulator.pdf",event); 
+  }
   c1->SaveAs(saveFile);
 
 
