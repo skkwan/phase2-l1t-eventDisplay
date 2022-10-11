@@ -30,12 +30,6 @@
 
 void DrawCardLines(){
   std::vector<TLine*> cardLines;
-  // float etaValues[17] = { -3, -2.107, -1.74, -1.392, -1.044, -0.696, -0.348, 0,
-  //   0.348, 0.696, 1.044, 1.392, 1.74, 2.107, 3 };//0.3508
-  // float phiValues[18] =
-  // {-2.965, -2.617, -2.268, -1.919, -1.570, -1.221, -0.872, -0.523, -0.174, 
-  //     0.174, 0.523, 0.872, 1.221, 1.570, 1.919, 2.268, 2.617, 2.965};
-
   float etaValues[3] = { -1.479, 0, 1.479 };
 
   float phiValues[19] =
@@ -113,7 +107,7 @@ void DrawRegionLines(){
 
 
 }
-
+ 
 /*
  * Draw tower lines.
  */
@@ -154,14 +148,11 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   // float half_tower_offset = 0.04365;
   float half_tower_offset = 0.0;
 
-  TFile *f = TFile::Open("L1EventDisplay.root", "READ");
-
-  // CHANGE ME EACH TIME (affects output file names, will re-write)
-  bool isNewEmulator = true; 
+  TFile *f = TFile::Open("L1EventDisplay-cmssw_1_38_3745.root", "READ");
   
   // CHANGE ME EACH TIME Declare the center of the plot
-  float etaCenter = 0.27;
-  float phiCenter = -1.7889;
+  float etaCenter = -0.427769;
+  float phiCenter = -3.115409;
 
   if (!f) { return; }
 
@@ -171,7 +162,6 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   std::vector<TLorentzVector> *vHcalTpgs       = 0;
   std::vector<TLorentzVector> *vClusters       = 0;
   std::vector<TLorentzVector> *vTowers         = 0;
-  std::vector<TLorentzVector> *vPFclusters     = 0;
 
   int event =0;
 
@@ -197,7 +187,6 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   t->SetBranchAddress("hcalTPGs",&vHcalTpgs,&bHcalTpgs);
   t->SetBranchAddress("ecalClusters",&vClusters,&bClusters);
   t->SetBranchAddress("caloTowers",&vTowers,&bTowers);
-  t->SetBranchAddress("caloPFClusters",&vPFclusters,&bPFclusters);
 
   // Create one histograms
   TH1F   *h                = new TH1F("h","This is the eta distribution",100,-4,4);
@@ -213,10 +202,6 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
 				   -1.4841, 1.4841,
 				   (72*5),//(144*2),
 				   -3.142,3.142); 
-  TH2F   *h2PFclusters  = new TH2F("h2PFclusters", "Event Display", 34,
-                                   -1.4841, 1.4841,
-                                   72,
-                                   -3.142,3.142);
   TH2F   *h2L1Towers    = new TH2F("h2L1Towers", "Event Display", 34,
 				   -1.4841, 1.4841,
 				   72,
@@ -232,7 +217,6 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   bHcalTpgs->GetEntry(tentry);
   bClusters->GetEntry(tentry);
   bTowers->GetEntry(tentry);
-  bPFclusters->GetEntry(tentry);
 
   //get the event number
   char name[30];
@@ -399,10 +383,7 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
 
   char* saveFile = new char[100];
 
-  sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u-current_emulator_test.png",event);
-  c1->SaveAs(saveFile);
-
-  sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u-current_emulator_test.pdf",event);
+  sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u-old_emulator.pdf",event);
   c1->SaveAs(saveFile);
 
 }
