@@ -148,22 +148,22 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   // float half_tower_offset = 0.04365;
   float half_tower_offset = 0.0;
 
-  TFile *f = TFile::Open("L1EventDisplay-cmssw_1_38_3745.root", "READ");
-  
-  // CHANGE ME EACH TIME Declare the center of the plot
-  float etaCenter = -0.427769;
-  float phiCenter = -3.115409;
+  TFile *f = TFile::Open("singleAnalyzer.root", "READ");
 
   if (!f) { return; }
 
-  TTree *t = (TTree*) f->Get("l1NtupleProducer/efficiencyTree");
+  TTree *t = (TTree*) f->Get("l1NtupleSingleProducer/dispTree");
 
   std::vector<TLorentzVector> *vEcalTpgs       = 0;
   std::vector<TLorentzVector> *vHcalTpgs       = 0;
-  std::vector<TLorentzVector> *vClusters       = 0;
-  std::vector<TLorentzVector> *vTowers         = 0;
 
-  int event =0;
+  std::vector<TLorentzVector> *vOldClusters     = 0;
+  // std::vector<TLorentzVector> *vOldTowers       = 0;
+
+  std::vector<TLorentzVector> *vNewClusters       = 0;
+  std::vector<TLorentzVector> *vNewTowers         = 0;
+
+  int event = 0;
 
   // Create a new canvas.
   TCanvas *c1 = new TCanvas("c1","eta vs phi",200,10,700,700);
@@ -177,16 +177,22 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   TBranch *bEvent            = 0;      
   TBranch *bEcalTpgs         = 0;
   TBranch *bHcalTpgs         = 0;
-  TBranch *bClusters = 0;
-  TBranch *bTowers   = 0;
+  TBranch *bOldClusters = 0;
+  // TBranch *bOldTowers = 0;
+
+  TBranch *bNewClusters = 0;
+  TBranch *bNewTowers   = 0;
   TBranch *bPFclusters  = 0;
+
 
   t->SetBranchAddress("event",&event,&bEvent);
 
   t->SetBranchAddress("ecalTPGs",&vEcalTpgs,&bEcalTpgs);
   t->SetBranchAddress("hcalTPGs",&vHcalTpgs,&bHcalTpgs);
-  t->SetBranchAddress("ecalClusters",&vClusters,&bClusters);
-  t->SetBranchAddress("caloTowers",&vTowers,&bTowers);
+  t->SetBranchAddress("oldClusters",&vOldClusters,&bOldClusters);
+  // t->SetBranchAddress("oldTowers",&vOldTowers,&bOldTowers);
+  t->SetBranchAddress("newClusters",&vNewClusters,&bNewClusters);
+  t->SetBranchAddress("newTowers",&vNewTowers,&bNewTowers);
 
   // Create one histograms
   TH1F   *h                = new TH1F("h","This is the eta distribution",100,-4,4);
@@ -198,7 +204,11 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
 				      -1.4841, 1.4841,
 				      72,
 				      -3.142,3.142);
-  TH2F   *h2L1Clusters  = new TH2F("h2L1Clusters","Event Display", (34*5), //(90*2),
+  TH2F   *h2L1NewClusters  = new TH2F("h2L1NewClusters","Event Display", (34*5), //(90*2),
+				   -1.4841, 1.4841,
+				   (72*5),//(144*2),
+				   -3.142,3.142); 
+  TH2F   *h2L1OldClusters  = new TH2F("h2L1OldClusters","Event Display", (34*5), //(90*2),
 				   -1.4841, 1.4841,
 				   (72*5),//(144*2),
 				   -3.142,3.142); 
@@ -215,8 +225,9 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   bEvent->GetEntry(tentry);
   bEcalTpgs->GetEntry(tentry);
   bHcalTpgs->GetEntry(tentry);
-  bClusters->GetEntry(tentry);
-  bTowers->GetEntry(tentry);
+  bOldClusters->GetEntry(tentry);
+  bNewClusters->GetEntry(tentry);
+  bNewTowers->GetEntry(tentry);
 
   //get the event number
   char name[30];
@@ -231,11 +242,28 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
               << ecalMinPt << " GeV" << std::endl;
   }
 
+  // Center plot around ECAL TPG with largest energy
+  float etaCenter, phiCenter, highestPtECALTPG;
+  if (vEcalTpgs->size() > 0) {
+    etaCenter = vEcalTpgs->at(0).Eta();
+    phiCenter = vEcalTpgs->at(0).Phi();
+    highestPtECALTPG = vEcalTpgs->at(0).Pt();
+  }
+  else {
+    std::cout << "[ERROR:] No ECAL TPGs found!" << std::endl;
+  }
+
+
   for (UInt_t j = 0; j < vEcalTpgs->size(); ++j) {
     if(vEcalTpgs->at(j).Pt() > ecalMinPt) {
       float ceta = vEcalTpgs->at(j).Eta();
       float cphi = vEcalTpgs->at(j).Phi();
       float cpt  = vEcalTpgs->at(j).Pt();
+
+      if (cpt > highestPtECALTPG) {
+        etaCenter = ceta;
+        phiCenter = cphi;
+      }
 
       h2EcalTpgs->Fill(ceta, cphi, cpt);
   
@@ -270,29 +298,47 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
     }
   }
 
-  // Get the clusters
-  double clusterMinPt = 0.;
-  if(clusterMinPt > 0.){
-    std::cout << "[INFO:] plotEventDisplayPhaseIIecalCrystals.C: do not show EG clusters with energy under "
-              << clusterMinPt << " GeV" << std::endl;
-  }
+float clusterMinPt = 0.0;
 
-  for (UInt_t j = 0; j < vClusters->size(); ++j) {
-    if(vClusters->at(j).Pt() > clusterMinPt){
-      float ceta = vClusters->at(j).Eta();
-      float cphi = vClusters->at(j).Phi();
-      float cpt  = vClusters->at(j).Pt();
+  // Get the new emulator clusters
+  std::cout << "[INFO:] Found " << vNewClusters->size() << " new clusters..." << std::endl;
+  for (UInt_t j = 0; j < vNewClusters->size(); ++j) {
+    if(vNewClusters->at(j).Pt() > clusterMinPt){
+      float ceta = vNewClusters->at(j).Eta();
+      float cphi = vNewClusters->at(j).Phi();
+      float cpt  = vNewClusters->at(j).Pt();
 
-      h2L1Clusters->Fill(ceta, cphi, cpt);
+      h2L1NewClusters->Fill(ceta, cphi, cpt);
 
       if ((ceta > (etaCenter - 0.25)) && (ceta < (etaCenter + 0.25))
           && (cphi > (phiCenter - 0.25)) && (cphi < (phiCenter + 0.25)) ) {
-          std::cout<<"vClusters->at(j).Pt() "<< cpt
+          std::cout<<"vNewClusters->at(j).Pt() "<< cpt
                    <<" eta "<< ceta
                    <<" phi "<< cphi <<std::endl;
       }
     }
   }
+
+
+  // Get the old emulator clusters
+  std::cout << "[INFO:] Found " << vOldClusters->size() << " old clusters..." << std::endl;
+  for (UInt_t j = 0; j < vOldClusters->size(); ++j) {
+    if(vOldClusters->at(j).Pt() > clusterMinPt){
+      float ceta = vOldClusters->at(j).Eta();
+      float cphi = vOldClusters->at(j).Phi();
+      float cpt  = vOldClusters->at(j).Pt();
+
+      h2L1OldClusters->Fill(ceta, cphi, cpt);
+
+      if ((ceta > (etaCenter - 0.25)) && (ceta < (etaCenter + 0.25))
+          && (cphi > (phiCenter - 0.25)) && (cphi < (phiCenter + 0.25)) ) {
+          std::cout<<"vOldClusters->at(j).Pt() "<< cpt
+                   <<" eta "<< ceta
+                   <<" phi "<< cphi <<std::endl;
+      }
+    }
+  }
+
 
   // Get the towers
   double towerMinPt = 0.;
@@ -301,18 +347,18 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
               << towerMinPt << " GeV" << std::endl;
   }
   
-  for (UInt_t j = 0; j < vTowers->size(); ++j) {
-    if(vTowers->at(j).Pt() > towerMinPt){
-      float ceta = vTowers->at(j).Eta();
-      float cphi = vTowers->at(j).Phi();
-      float cpt  = vTowers->at(j).Pt();
+  for (UInt_t j = 0; j < vNewTowers->size(); ++j) {
+    if(vNewTowers->at(j).Pt() > towerMinPt){
+      float ceta = vNewTowers->at(j).Eta();
+      float cphi = vNewTowers->at(j).Phi();
+      float cpt  = vNewTowers->at(j).Pt();
 
       h2L1Towers->Fill(ceta, cphi, cpt);
 
       if ((ceta > (etaCenter - 0.25)) && (ceta < (etaCenter + 0.25))
          && (cphi > (phiCenter - 0.25)) && (cphi < (phiCenter + 0.25))) {
 
-        std::cout<<"vTowers->at(j).Pt() "<< cpt
+        std::cout<<"vNewTowers->at(j).Pt() "<< cpt
                  <<" eta "<< ceta
                  <<" phi "<< cphi <<std::endl;
       }
@@ -328,8 +374,12 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   h2HcalTpgs->GetYaxis()->SetTitle("#phi");
   h2HcalTpgs->SetTitle(name);
 
-  h2HcalTpgs->GetXaxis()->SetRangeUser(etaCenter - 0.25, etaCenter + 0.25);
-  h2HcalTpgs->GetYaxis()->SetRangeUser(phiCenter - 0.25, phiCenter + 0.25);
+  // h2HcalTpgs->GetXaxis()->SetRangeUser(etaCenter - 0.5, etaCenter + 0.5);
+  // h2HcalTpgs->GetYaxis()->SetRangeUser(phiCenter - 0.5, phiCenter + 0.5);
+
+  h2HcalTpgs->GetXaxis()->SetRangeUser(-1.4841, 1.4841);
+  h2HcalTpgs->GetYaxis()->SetRangeUser(-3.14, 3.14);
+
 
   h2HcalTpgs->Draw("BOX");
   h2HcalTpgs->Draw("SAME BOX");
@@ -361,15 +411,26 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
   h2L1Towers2->SetLineWidth(1);
   h2L1Towers2->Draw("SAME BOXL");
 
-  // Plot the clusters
-  TH2F* h2L1Clusters2 = (TH2F*)h2L1Clusters->Clone();
-  h2L1Clusters->SetFillStyle(1001);
-  h2L1Clusters->SetFillColorAlpha(kRed, 0.8);
-  h2L1Clusters->SetLineColorAlpha(kRed, 0.8);
-  h2L1Clusters->Draw("SAME BOX");
-  h2L1Clusters2->SetLineColor(kRed);
-  h2L1Clusters2->SetLineWidth(1);
-  h2L1Clusters2->Draw("SAME BOXL");
+  // Plot the new clusters
+  TH2F* h2L1NewClusters2 = (TH2F*)h2L1NewClusters->Clone();
+  h2L1NewClusters->SetFillStyle(1001);
+  h2L1NewClusters->SetFillColorAlpha(kRed, 0.8);
+  h2L1NewClusters->SetLineColorAlpha(kRed, 0.8);
+  h2L1NewClusters->Draw("SAME BOX");
+  h2L1NewClusters2->SetLineColor(kRed);
+  h2L1NewClusters2->SetLineWidth(1);
+  h2L1NewClusters2->Draw("SAME BOXL");
+
+
+  // Plot the old clusters
+  TH2F* h2L1OldClusters2 = (TH2F*)h2L1OldClusters->Clone();
+  h2L1OldClusters->SetFillStyle(1001);
+  h2L1OldClusters->SetFillColorAlpha(kBlue, 0.8);
+  h2L1OldClusters->SetLineColorAlpha(kBlue, 0.8);
+  h2L1OldClusters->Draw("SAME BOX");
+  h2L1OldClusters2->SetLineColor(kBlue);
+  h2L1OldClusters2->SetLineWidth(1);
+  h2L1OldClusters2->Draw("SAME BOXL");
 
   float xR=0.70;
   TLegend *l = new TLegend(xR,0.80,xR+0.30,1.0);
@@ -377,13 +438,45 @@ void plotEventDisplayPhaseIIecalCrystals(int iEvent){
 
   l->AddEntry(h2EcalTpgs,   "ECAL Crystals",   "F");
   l->AddEntry(h2HcalTpgs,   "HCAL Towers",     "F");
-  l->AddEntry(h2L1Clusters, "EG Clusters", "F");
-  l->AddEntry(h2L1Towers,   "GCT Towers",   "F");
+  l->AddEntry(h2L1NewClusters, "New Clusters", "F");
+  l->AddEntry(h2L1Towers,   "New Towers",   "F");
+  l->AddEntry(h2L1OldClusters, "Old Clusters", "F");
   l->Draw();
 
   char* saveFile = new char[100];
 
-  sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/events/Event-%u-old_emulator.pdf",event);
+  sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/Event-%u-bothEmulators_fullView.pdf",event);
+  c1->SaveAs(saveFile);
+
+
+  /////////////
+  // Make another plot
+  h2HcalTpgs->GetXaxis()->SetRangeUser(etaCenter - 0.5, etaCenter + 0.5);
+  h2HcalTpgs->GetYaxis()->SetRangeUser(phiCenter - 0.5, phiCenter + 0.5);
+  h2HcalTpgs->Draw("BOX");
+  h2HcalTpgs->Draw("SAME BOX");
+  h2HcalTpgs2->Draw("SAME BOXL");
+  DrawCardLines();
+  DrawRegionLines();
+  DrawTowerLines();
+  h2EcalTpgs->Draw("SAME BOX");
+  h2EcalTpgs2->Draw("SAME BOXL");
+  h2L1Towers->Draw("SAME BOX");
+  h2L1Towers2->Draw("SAME BOXL");
+  h2L1NewClusters->Draw("SAME BOX");
+  h2L1NewClusters2->Draw("SAME BOXL");
+  h2L1OldClusters->Draw("SAME BOX");
+  h2L1OldClusters2->Draw("SAME BOXL");
+  l = new TLegend(xR,0.80,xR+0.30,1.0);
+  l->SetTextSize(0.035);
+  l->AddEntry(h2EcalTpgs,   "ECAL Crystals",   "F");
+  l->AddEntry(h2HcalTpgs,   "HCAL Towers",     "F");
+  l->AddEntry(h2L1NewClusters, "New Clusters", "F");
+  l->AddEntry(h2L1Towers,   "New Towers",   "F");
+  l->AddEntry(h2L1OldClusters, "Old Clusters", "F");
+  l->Draw();
+  saveFile = new char[100];
+  sprintf(saveFile,"/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/Event-%u-bothEmulators_highestECALTPGView.pdf",event);
   c1->SaveAs(saveFile);
 
 }
