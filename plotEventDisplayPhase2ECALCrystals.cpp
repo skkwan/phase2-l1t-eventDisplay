@@ -1,4 +1,7 @@
-// original author I. Ojalvo
+// authors: S. Kwan, P. Das, I. Ojalvo
+
+#include "helpers/checkDeltaR.h"
+#include "helpers/helpers.h"
 
 void DrawCardLines(){
     std::vector<TLine*> cardLines;
@@ -107,7 +110,70 @@ void DrawTowerLines(){
     }
 }
 
+/*
+ * Creates plots of the provided TH2Fs, centered at the specified (etaCenter, phiCenter) such that the scope of the plot is
+ * (etaCenter - etaWidth, etaCenter + etaWidth) in eta, and (phiCenter - phiWidth, phiCenter + phiWidth) in phi.
+ */
+int makePlots(float etaCenter, float phiCenter, TH2F* h2HcalTpgs, TH2F* h2EcalTpgs, TH2F* h2OldClusters, TH2F* h2NewClusters, int event, const char* saveFile,
+              float etaWidth = 0.5, float phiWidth = 0.5) {
 
+    // Create a new canvas.
+    TCanvas *c1 = new TCanvas("c1","eta vs phi",200,10,700,700);
+    c1->SetFillColor(0);
+    c1->GetFrame()->SetFillColor(0);
+    c1->GetFrame()->SetBorderSize(6);
+    c1->GetFrame()->SetBorderMode(-1);
+
+    // Plot the HCAL TPGs (first, clone to plot the border)                                                 
+    TH2F* h2HcalTpgs2 = (TH2F*)h2HcalTpgs->Clone();
+    h2HcalTpgs->GetXaxis()->SetRangeUser(etaCenter - etaWidth, etaCenter + etaWidth);
+    h2HcalTpgs->GetYaxis()->SetRangeUser(phiCenter - phiWidth, phiCenter + phiWidth);
+
+    h2HcalTpgs->Draw("BOX");
+    h2HcalTpgs->Draw("SAME BOX");
+    h2HcalTpgs2->SetLineColor(kSpring+10);
+    h2HcalTpgs2->SetLineWidth(1);
+    h2HcalTpgs2->Draw("SAME BOXL");
+
+    DrawCardLines();
+    DrawRegionLines();
+    DrawTowerLines();
+
+    // Plot the ECAL crystals (TPGs)
+    TH2F* h2EcalTpgs2 = (TH2F*)h2EcalTpgs->Clone();
+    h2EcalTpgs->Draw("SAME BOX");
+    h2EcalTpgs2->SetLineColor(kPink+1);
+    h2EcalTpgs2->SetLineWidth(1);
+    h2EcalTpgs2->Draw("SAME BOXL");
+    h2EcalTpgs->Draw("SAME");
+
+    // Plot the new clusters: filled-in only no outlines
+    h2NewClusters->Draw("SAME BOX");
+    h2NewClusters->SetMarkerColor(kRed);
+    h2NewClusters->SetBarOffset(0.2);
+    h2NewClusters->Draw("SAME TEXT45");
+ 
+    // Plot the old clusters
+    h2OldClusters->Draw("SAME BOXL");
+    // h2OldClusters->Draw("SAME TEXT");
+
+
+    float xR = 0.7;
+    TLegend *l = new TLegend(xR, 0.80, xR+0.30, 1.0);
+    l->SetTextSize(0.035);
+
+    l->AddEntry(h2EcalTpgs,   "ECAL Crystals",   "F");
+    l->AddEntry(h2HcalTpgs,   "HCAL Towers",     "F");
+    l->AddEntry(h2NewClusters, "New Clusters", "F");
+    // l->AddEntry(h2L1Towers,   "New Towers",   "F");
+    l->AddEntry(h2OldClusters, "Old Clusters", "F");
+    l->Draw();
+
+    c1->SaveAs(saveFile);    
+    delete c1;
+
+    return 1;
+}
 
 
 void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
@@ -137,12 +203,6 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
 
     int event = 0;
 
-    // Create a new canvas.
-    TCanvas *c1 = new TCanvas("c1","eta vs phi",200,10,700,700);
-    c1->SetFillColor(0);
-    c1->GetFrame()->SetFillColor(0);
-    c1->GetFrame()->SetBorderSize(6);
-    c1->GetFrame()->SetBorderMode(-1);
 
     const Int_t kUPDATE = 1000;
 
@@ -175,25 +235,38 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
         // 			   -1.4841, 1.4841,
         // 			   72,
         // 			   -3.142,3.142);
+
+    // Set style
+    h2HcalTpgs->SetFillStyle(1001);
+    h2HcalTpgs->SetFillColorAlpha(kSpring+10, 0.8);
+    h2HcalTpgs->SetLineColorAlpha(kSpring+10, 0.8);
+    h2HcalTpgs->GetXaxis()->SetTitle("#eta");
+    h2HcalTpgs->GetYaxis()->SetTitle("#phi");
+
+    h2EcalTpgs->SetFillStyle(1001);
+    h2EcalTpgs->SetFillColorAlpha(kPink+1, 0.8);
+    h2EcalTpgs->SetLineColorAlpha(kPink+1, 0.8);
+
+    h2NewClusters->SetFillStyle(1001);
+    h2NewClusters->SetFillColorAlpha(kRed, 0.5);
+    h2NewClusters->SetLineColorAlpha(kRed, 0.5);
+
+    h2OldClusters->SetLineColor(kBlue);
+    h2OldClusters->SetLineWidth(1);
     
 
     Long64_t tentry = t->LoadTree(iEvent);
     t->GetEntry(tentry);
     std::printf("Event %i\n", event);
 
-    // Set plot center
-    float etaCenter, phiCenter;
-    std::printf("[INFO:] Found %zu old clusters...", vOldClusters->size());
-    if (vOldClusters->size() > 0) {
-        etaCenter = vOldClusters->at(0).Eta();
-        phiCenter = vOldClusters->at(0).Phi();
-    }
 
     // Get ECAL TPGs
     double ecalMinPt = 0;
     if (ecalMinPt > 0){
         std::printf("[INFO:] plotEventDisplayPhaseIIecalCrystals.C: do not show ECAL TPGs with energy under %f GeV", ecalMinPt);
     }
+    // Sort them
+    std::sort(vEcalTpgs->begin(), vEcalTpgs->end(), comparePt);
 
     for (unsigned int j = 0; j < vEcalTpgs->size(); ++j) {
         if (vEcalTpgs->at(j).Pt() > ecalMinPt) {
@@ -202,7 +275,7 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
             float cpt  = vEcalTpgs->at(j).Pt();
 
             h2EcalTpgs->Fill(ceta, cphi, cpt);
-            std::printf("vEcalTpgs->at(j).Pt() %f eta %f phi %f\n", cpt, ceta, cphi);
+            // std::printf("vEcalTpgs->at(j).Pt() %f eta %f phi %f\n", cpt, ceta, cphi);
         }
     }
 
@@ -211,6 +284,8 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
     if (hcalMinPt > 0){
         std::printf("[INFO:] plotEventDisplayPhaseIIecalCrystals.C: do not show HCAL TPGs with energy under %f GeV", hcalMinPt);
     }
+    std::sort(vHcalTpgs->begin(), vHcalTpgs->end(), comparePt);
+
 
     for (UInt_t j = 0; j < vHcalTpgs->size(); ++j) {
         if(vHcalTpgs->at(j).Pt() > hcalMinPt) {
@@ -220,34 +295,35 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
 
             h2HcalTpgs->Fill(ceta, cphi, cpt);
 
-            if ((ceta > (etaCenter - 0.25)) && (ceta < (etaCenter + 0.25))
-                && (cphi > (phiCenter - 0.25)) && (cphi < (phiCenter + 0.25))) {
+            // if ((ceta > (etaCenter - 0.25)) && (ceta < (etaCenter + 0.25))
+            //     && (cphi > (phiCenter - 0.25)) && (cphi < (phiCenter + 0.25))) {
 
-                std::printf("vHcalTpgs->at(j).Pt() %f eta %f phi %f\n", cpt, ceta, cphi);
-            }
+            //     // std::printf("vHcalTpgs->at(j).Pt() %f eta %f phi %f\n", cpt, ceta, cphi);
+            // }
         }
     }
 
     // Get the new emulator clusters
     float clusterMinPt = 0;
+    std::sort(vNewClusters->begin(), vNewClusters->end(), comparePt);
+
     std::printf("[INFO:] Found %zu new emulator clusters...\n",  vNewClusters->size());
     for (unsigned int j = 0; j < vNewClusters->size(); ++j) {
-        if (vNewClusters->at(j).Pt() > clusterMinPt) {
+//        if (vNewClusters->at(j).Pt() > clusterMinPt) {
             float ceta = vNewClusters->at(j).Eta();
             float cphi = vNewClusters->at(j).Phi();
             float cpt  = vNewClusters->at(j).Pt();
 
             h2NewClusters->Fill(ceta, cphi, cpt);
 
-            if ((ceta > (etaCenter - 0.25)) && (ceta < (etaCenter + 0.25))
-                && (cphi > (phiCenter - 0.25)) && (cphi < (phiCenter + 0.25)) ) {
-                std::printf("vNewClusters->at(j).Pt() %f eta %f phi %f\n", cpt, ceta, cphi);
-            }
-        }
+            std::printf("vNewClusters->at(j).Pt() %f eta %f phi %f\n", cpt, ceta, cphi);
+      //  }
     }
 
 
     // Get the old emulator clusters
+    std::sort(vOldClusters->begin(), vOldClusters->end(), comparePt);
+
     for (unsigned int j = 0; j < vOldClusters->size(); ++j) {
         if (vOldClusters->at(j).Pt() > clusterMinPt) {
             float ceta = vOldClusters->at(j).Eta();
@@ -256,81 +332,75 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
 
             h2OldClusters->Fill(ceta, cphi, cpt);
 
-            if ((ceta > (etaCenter - 0.25)) && (ceta < (etaCenter + 0.25))
-                && (cphi > (phiCenter - 0.25)) && (cphi < (phiCenter + 0.25)) ) {
-                std::printf("vOldClusters->at(j).Pt() %f eta %f phi %f\n", cpt, ceta, cphi);
-            }
+            std::printf("vOldClusters->at(j).Pt() %f eta %f phi %f\n", cpt, ceta, cphi);
+
         }
     }
 
-    // Plot the HCAL TPGs (first, clone to plot the border)                                                 
-    TH2F* h2HcalTpgs2 = (TH2F*)h2HcalTpgs->Clone();
-    h2HcalTpgs->SetFillStyle(1001);
-    h2HcalTpgs->SetFillColorAlpha(kSpring+10, 0.8);
-    h2HcalTpgs->SetLineColorAlpha(kSpring+10, 0.8);
-    h2HcalTpgs->GetXaxis()->SetTitle("#eta");
-    h2HcalTpgs->GetYaxis()->SetTitle("#phi");
-    char name[30];
-    sprintf(name, "Event %u", event);
+    // If the leading clusters are in the wrong position, make a note of this
+    bool hasLargeDeltaR = isLeadingDeltaRLarge(vOldClusters, vNewClusters, 0.5);
+    printf("[INFO:] hasLargeDeltaR: (0 if false, 1 if true) %i\n", hasLargeDeltaR);
+
+
+    /* 
+     * Do plots centered around the leading ECAL TPG 
+     */
+    // Set plot center
+    float etaCenter, phiCenter, etaWidth, phiWidth;
+    char name[100];
+    char* saveFile = new char[300];
+
+
+    // if (vEcalTpgs->size() > 0) {
+    //     etaCenter = vEcalTpgs->at(0).Eta();
+    //     phiCenter = vEcalTpgs->at(0).Phi();
+    // }
+    // printf("[INFO:] Centering plot on highest energy ECAL TPG at %f, %f.....", etaCenter, phiCenter);
+    // // Set plot title and name
+    // (hasLargeDeltaR) ? sprintf(name, "Event %u (centered on leading ECAL TPG) - large #Delta R", event) :
+    //                    sprintf(name, "Event %u (centered on leading ECAL TPG)", event);
+    // h2HcalTpgs->SetTitle(name);
+    // (hasLargeDeltaR) ? sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/printClusterInfo/Event-%u-largeDeltaR_leadingECALTPG.pdf",event) :
+    //                    sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/printClusterInfo/Event-%u-leadingECALTPG.pdf",event);
+    // makePlots(etaCenter, phiCenter, h2HcalTpgs, h2EcalTpgs, h2OldClusters, h2NewClusters, event, saveFile);
+
+    /*
+     * Do plots centered around the leading cluster in the old emulator
+     */
+    if (vOldClusters->size() > 0) {
+        etaCenter = vOldClusters->at(0).Eta();
+        phiCenter = vOldClusters->at(0).Phi();
+        if (hasLargeDeltaR) {
+            etaWidth = std::abs(etaCenter - vNewClusters->at(0).Eta()) + 0.1;
+            phiWidth = std::abs(phiCenter - vNewClusters->at(0).Phi()) + 0.1; 
+        }
+        else {
+            etaWidth = 0.5;
+            phiWidth = 0.5;
+        }
+    }    
+    printf("[INFO:] Centering plot on leading cluster in old emulator at %f, %f.....", etaCenter, phiCenter);
+    (hasLargeDeltaR) ?  sprintf(name, "Event %u (centered on old emu cluster) - large #Delta R", event) :
+                        sprintf(name, "Event %u (centered on old emu cluster)", event);
     h2HcalTpgs->SetTitle(name);
+    (hasLargeDeltaR) ? sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/printClusterInfo/Event-%u-largeDeltaR_oldLeadingCluster.pdf",event) :
+                       sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/printClusterInfo/Event-%u-oldLeadingCluster.pdf",event);
+    makePlots(etaCenter, phiCenter, h2HcalTpgs, h2EcalTpgs, h2OldClusters, h2NewClusters, event, saveFile, etaWidth, phiWidth);
 
-    h2HcalTpgs->GetXaxis()->SetRangeUser(etaCenter - 0.5, etaCenter + 0.5);
-    h2HcalTpgs->GetYaxis()->SetRangeUser(phiCenter - 0.5, phiCenter + 0.5);
-
-    h2HcalTpgs->Draw("BOX");
-    h2HcalTpgs->Draw("SAME BOX");
-    h2HcalTpgs2->SetLineColor(kSpring+10);
-    h2HcalTpgs2->SetLineWidth(1);
-    h2HcalTpgs2->Draw("SAME BOXL");
-
-    DrawCardLines();
-    DrawRegionLines();
-    DrawTowerLines();
-
-    // Plot the ECAL crystals (TPGs)
-    TH2F* h2EcalTpgs2 = (TH2F*)h2EcalTpgs->Clone();
-    h2EcalTpgs->SetFillStyle(1001);
-    h2EcalTpgs->SetFillColorAlpha(kPink+1, 0.8);
-    h2EcalTpgs->SetLineColorAlpha(kPink+1, 0.8);
-    h2EcalTpgs->Draw("SAME BOX");
-    h2EcalTpgs2->SetLineColor(kPink+1);
-    h2EcalTpgs2->SetLineWidth(1);
-    h2EcalTpgs2->Draw("SAME BOXL");
-
-    // Plot the new clusters: filled-in only no outlines
-    TH2F* h2NewClusters2 = (TH2F*)h2NewClusters->Clone();
-    h2NewClusters->SetFillStyle(1001);
-    h2NewClusters->SetFillColorAlpha(kRed, 0.5);
-    h2NewClusters->SetLineColorAlpha(kRed, 0.5);
-    h2NewClusters->Draw("SAME BOX");
-    h2NewClusters2->SetLineColor(kRed);
-    h2NewClusters2->SetLineWidth(1);
-    // h2NewClusters2->Draw("SAME BOXL");
-
-    // Plot the old clusters
-    TH2F* h2OldClusters2 = (TH2F*)h2OldClusters->Clone();
-    h2OldClusters->SetFillStyle(1001);
-    h2OldClusters->SetFillColorAlpha(kBlue, 0.8);
-    h2OldClusters->SetLineColorAlpha(kBlue, 0.8);
-    // h2OldClusters->Draw("SAME BOX");
-    h2OldClusters2->SetLineColor(kBlue);
-    h2OldClusters2->SetLineWidth(1);
-    h2OldClusters2->Draw("SAME BOXL");
-
-    float xR = 0.7;
-    TLegend *l = new TLegend(xR, 0.80, xR+0.30, 1.0);
-    l->SetTextSize(0.035);
-
-    l->AddEntry(h2EcalTpgs,   "ECAL Crystals",   "F");
-    l->AddEntry(h2HcalTpgs,   "HCAL Towers",     "F");
-    l->AddEntry(h2NewClusters, "New Clusters", "F");
-    // l->AddEntry(h2L1Towers,   "New Towers",   "F");
-    l->AddEntry(h2OldClusters2, "Old Clusters", "F");
-    l->Draw();
-
-    char* saveFile = new char[100];
-    sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/Event-%u.pdf",event);
-    c1->SaveAs(saveFile);
+    // /*
+    //  * Do plots centered around the leading cluster in the NEW emulator
+    //  */
+    // if (vNewClusters->size() > 0) {
+    //     etaCenter = vNewClusters->at(0).Eta();
+    //     phiCenter = vNewClusters->at(0).Phi();
+    // }
+    // printf("[INFO:] Centering plot on leading cluster in NEW emulator at %f, %f.....", etaCenter, phiCenter);
+    // (hasLargeDeltaR) ?  sprintf(name, "Event %u (centered on new emu cluster) - large #Delta R", event) :
+    //                     sprintf(name, "Event %u (centered on new emu cluster)", event);
+    // h2HcalTpgs->SetTitle(name);
+    // (hasLargeDeltaR) ? sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/printClusterInfo/Event-%u-largeDeltaR_newLeadingCluster.pdf",event) :
+    //                    sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/printClusterInfo/Event-%u-newLeadingCluster.pdf",event);
+    // makePlots(etaCenter, phiCenter, h2HcalTpgs, h2EcalTpgs, h2OldClusters, h2NewClusters, event, saveFile);
 
     
 }
