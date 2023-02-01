@@ -111,25 +111,20 @@ void DrawTowerLines(){
 }
 
 /*
- * Creates plots of the provided TH2Fs.
+ * 
  */
-int makePlots(float etaMin, float etaMax, float phiMin, float phiMax, TH2F* h2HcalTpgs, TH2F* h2EcalTpgs, TH2F* h2OldClusters, TH2F* h2NewClusters,
-              TH2F* h2LeadingOld, TH2F* h2LeadingNew,
-              int event, const char* saveFile) {
-    // Create a new canvas.
-    TCanvas *c1 = new TCanvas("c1","eta vs phi",200,10,700,700);
-    c1->SetFillColor(0);
-    c1->GetFrame()->SetFillColor(0);
-    c1->GetFrame()->SetBorderSize(6);
-    c1->GetFrame()->SetBorderMode(-1);
-
-    // Plot the HCAL TPGs (first, clone to plot the border)                                                 
-    TH2F* h2HcalTpgs2 = (TH2F*)h2HcalTpgs->Clone();
+int makeSmallerPlotInPad(float etaMin, float etaMax, float phiMin, float phiMax,
+                        TH2F* h2HcalTpgs_original, TH2F* h2EcalTpgs_original, TH2F* h2OldClusters_original, TH2F* h2NewClusters_original,
+                        TH2F* h2LeadingOld_original, TH2F* h2LeadingNew_original, float barOffset = 0.5, float textSize = 1.2) {
+    
+    TH2F* h2HcalTpgs = (TH2F*) h2HcalTpgs_original->Clone();
+    TH2F* h2HcalTpgs2 = (TH2F*) h2HcalTpgs_original->Clone();
     h2HcalTpgs->GetXaxis()->SetRangeUser(etaMin, etaMax);
     h2HcalTpgs->GetYaxis()->SetRangeUser(phiMin, phiMax);
 
     h2HcalTpgs->Draw("BOX");
     h2HcalTpgs->Draw("SAME BOX");
+
     h2HcalTpgs2->SetLineColor(kSpring+10);
     h2HcalTpgs2->SetLineWidth(1);
     h2HcalTpgs2->Draw("SAME BOXL");
@@ -139,43 +134,87 @@ int makePlots(float etaMin, float etaMax, float phiMin, float phiMax, TH2F* h2Hc
     DrawTowerLines();
 
     // Plot the ECAL crystals (TPGs)
-    TH2F* h2EcalTpgs2 = (TH2F*)h2EcalTpgs->Clone();
+    TH2F* h2EcalTpgs = (TH2F*)h2EcalTpgs_original->Clone();
+    TH2F* h2EcalTpgs2 = (TH2F*)h2EcalTpgs_original->Clone();
     h2EcalTpgs->Draw("SAME BOX");
     h2EcalTpgs2->SetLineColor(kPink+1);
     h2EcalTpgs2->SetLineWidth(1);
     h2EcalTpgs2->Draw("SAME BOXL");
     h2EcalTpgs->Draw("SAME");
 
-    float offset = 5.5;
-
     // Plot the new clusters: filled-in only no outlines
+    TH2F* h2NewClusters = (TH2F*) h2NewClusters_original->Clone();
     h2NewClusters->Draw("SAME BOX");
     h2NewClusters->SetMarkerColor(kRed-5);
-    h2NewClusters->SetBarOffset(offset);
+    h2NewClusters->SetMarkerSize(textSize);
+    h2NewClusters->SetBarOffset(barOffset);
     h2NewClusters->Draw("SAME TEXT");
  
     // Plot the old clusters
+    TH2F* h2OldClusters = (TH2F*) h2OldClusters_original->Clone();
     h2OldClusters->Draw("SAME BOXL");
     h2OldClusters->SetMarkerColor(kBlue-6);
-    h2OldClusters->SetBarOffset(-1 * offset);
+    h2OldClusters->SetMarkerSize(textSize);
+    h2OldClusters->SetBarOffset(-1 * barOffset);
     h2OldClusters->Draw("SAME TEXT");
 
     // leading new cluster
+    TH2F* h2LeadingNew = (TH2F*) h2LeadingNew_original->Clone();
     h2LeadingNew->Draw("SAME BOX");
     h2LeadingNew->SetMarkerColor(kRed);
-    h2LeadingNew->SetBarOffset(offset);
+    h2LeadingNew->SetMarkerSize(textSize);
+    h2LeadingNew->SetBarOffset(barOffset);
     h2LeadingNew->Draw("SAME TEXT");
 
     // leading old cluster
+    TH2F* h2LeadingOld = (TH2F*) h2LeadingOld_original->Clone();
     h2LeadingOld->Draw("SAME BOX");
     h2LeadingOld->SetMarkerColor(kBlue);
-    h2LeadingOld->SetBarOffset(-1 * offset);
+    h2LeadingOld->SetMarkerSize(textSize);
+    h2LeadingOld->SetBarOffset(-1 * barOffset);
     h2LeadingOld->Draw("SAME TEXT");
 
+    return 1;
+}
 
-    float xR = 0.7;
-    TLegend *l = new TLegend(xR, 0.80, xR+0.30, 1.0);
-    l->SetTextSize(0.035);
+/*
+ * Creates plots of the provided TH2Fs.
+ */
+int makePlots(float etaMin, float etaMax, float phiMin, float phiMax,
+              float oldEtaCenter, float oldPhiCenter,
+              float newEtaCenter, float newPhiCenter,
+              TH2F* h2HcalTpgs, TH2F* h2EcalTpgs, TH2F* h2OldClusters, TH2F* h2NewClusters,
+              TH2F* h2LeadingOld, TH2F* h2LeadingNew,
+              int event, const char* saveFile) {
+    // Create a new canvas.
+    TCanvas *c1 = new TCanvas("c1","eta vs phi",4000,8000);
+    
+    c1->SetFillColor(0);
+    c1->GetFrame()->SetFillColor(0);
+    c1->GetFrame()->SetBorderSize(6);
+    c1->GetFrame()->SetBorderMode(-1);
+
+    char name[100];
+
+
+    TPad *pad1 = new TPad("pad1","This is pad1",0.05,0.66,0.95,0.99);
+    TPad *pad2 = new TPad("pad2","This is pad2",0.05,0.33,0.95,0.66);
+    TPad *pad3 = new TPad("pad2","This is pad2",0.05,0.02,0.95,0.33);
+
+
+    pad1->Draw();
+    pad2->Draw();
+    pad3->Draw();
+
+    pad1->cd();
+    float barOffset = 10.0;   
+    makeSmallerPlotInPad(-1.4841, 1.4841, -3.14, 3.14,
+                        h2HcalTpgs, h2EcalTpgs, h2OldClusters, h2NewClusters,
+                        h2LeadingOld, h2LeadingNew, barOffset);
+    
+    float xR = 0.8;
+    TLegend *l = new TLegend(xR, 0.9, xR+0.2, 1.0);
+    l->SetTextSize(0.03);
 
     l->AddEntry(h2EcalTpgs,   "ECAL Crystals",   "F");
     l->AddEntry(h2HcalTpgs,   "HCAL Towers",     "F");
@@ -183,7 +222,30 @@ int makePlots(float etaMin, float etaMax, float phiMin, float phiMax, TH2F* h2Hc
     // l->AddEntry(h2L1Towers,   "New Towers",   "F");
     l->AddEntry(h2OldClusters, "Old Clusters", "F");
     l->Draw();
+    c1->Update();
 
+    // PLOT AROUND OLD EMU LEADING CLUSTER
+    pad2->cd();
+    barOffset = 2.5;
+    sprintf(name, "Event %u: old emulator leading cluster", event);
+    h2HcalTpgs->SetTitle(name);
+    makeSmallerPlotInPad(oldEtaCenter-0.25, oldEtaCenter+0.25, oldPhiCenter-0.25, oldPhiCenter+0.25,
+                        h2HcalTpgs, h2EcalTpgs, h2OldClusters, h2NewClusters,
+                        h2LeadingOld, h2LeadingNew, barOffset, 2.4);
+
+    c1->Update();
+
+    // PLOT AROUND NEW EMU LEADING CLUSTER
+    pad3->cd();
+    barOffset = 2.5;
+    sprintf(name, "Event %u: new emulator leading cluster", event);
+    h2HcalTpgs->SetTitle(name);
+    makeSmallerPlotInPad(newEtaCenter-0.25, newEtaCenter+0.25, newPhiCenter-0.25, newPhiCenter+0.25,
+                        h2HcalTpgs, h2EcalTpgs, h2OldClusters, h2NewClusters,
+                        h2LeadingOld, h2LeadingNew, barOffset, 2.4);
+   
+
+    c1->Update();
     c1->SaveAs(saveFile);    
     delete c1;
 
@@ -390,33 +452,13 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
     bool hasLargeDeltaR = isLeadingDeltaRLarge(vOldClusters, vNewClusters, 0.5);
     printf("[INFO:] hasLargeDeltaR: (0 if false, 1 if true) %i\n", hasLargeDeltaR);
 
-
-
-    /* 
-     * Do plots centered around the leading ECAL TPG 
+    /*
+     * Do plots that show both clusters (dynamically adjusting the scope if they are far apart).
      */
-    // Set plot center
     float etaCenter, phiCenter, etaMin, etaMax, phiMin, phiMax;
     char name[100];
     char* saveFile = new char[300];
 
-
-    // if (vEcalTpgs->size() > 0) {
-    //     etaCenter = vEcalTpgs->at(0).Eta();
-    //     phiCenter = vEcalTpgs->at(0).Phi();
-    // }
-    // printf("[INFO:] Centering plot on highest energy ECAL TPG at %f, %f.....", etaCenter, phiCenter);
-    // // Set plot title and name
-    // (hasLargeDeltaR) ? sprintf(name, "Event %u (centered on leading ECAL TPG) - large #Delta R", event) :
-    //                    sprintf(name, "Event %u (centered on leading ECAL TPG)", event);
-    // h2HcalTpgs->SetTitle(name);
-    // (hasLargeDeltaR) ? sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/printClusterInfo/Event-%u-largeDeltaR_leadingECALTPG.pdf",event) :
-    //                    sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/printClusterInfo/Event-%u-leadingECALTPG.pdf",event);
-    // makePlots(etaCenter, phiCenter, h2HcalTpgs, h2EcalTpgs, h2OldClusters, h2NewClusters, event, saveFile);
-
-    /*
-     * Do plots centered around the leading cluster in the old emulator
-     */
     etaCenter = oldLeadingClusterEta;
     phiCenter = oldLeadingClusterPhi;
     if (hasLargeDeltaR) {
@@ -429,40 +471,39 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
         float etaMidpoint = (etaMin + etaMax) / 2;
         float phiMidpoint = (phiMin + phiMax) / 2;
 
-        float myWidth = std::max(etaMax - etaMin, phiMax - phiMin);
+        float myWidth = 0.5 + std::max(etaMax - etaMin, phiMax - phiMin);
         etaMin = etaMidpoint - (myWidth/2);
         etaMax = etaMidpoint + (myWidth/2);
         phiMin = phiMidpoint - (myWidth/2);
         phiMax = phiMidpoint + (myWidth/2);
+
+        etaMin = -1.4841;
+        etaMax = +1.4841;
+
+        phiMin = -3.14;
+        phiMax = 3.14;
+
+        printf("[INFO:] Creating custom range to show both clusters, old (%f, %f) and new (%f, %f).....\n", oldLeadingClusterEta, oldLeadingClusterPhi, newLeadingClusterEta, newLeadingClusterPhi);
+        printf("[INFO:] Calculated eta range to be %f to %f, and phi range to be %f to %f\n", etaMin, etaMax, phiMin, phiMax);
+
     }
     else {
         etaMin = etaCenter - 0.25;
         etaMax = etaCenter + 0.25;
         phiMin = phiCenter - 0.25;
         phiMax = phiCenter + 0.25;
-    }
-    printf("[INFO:] Centering plot on leading cluster in old emulator at %f, %f.....", etaCenter, phiCenter);
-    (hasLargeDeltaR) ?  sprintf(name, "Event %u (centered on old emu cluster) - large #Delta R", event) :
-                        sprintf(name, "Event %u (centered on old emu cluster)", event);
-    h2HcalTpgs->SetTitle(name);
-    (hasLargeDeltaR) ? sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/printClusterInfo/Event-%u-largeDeltaR_oldLeadingCluster.pdf",event) :
-                       sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/printClusterInfo/Event-%u-oldLeadingCluster.pdf",event);
-    makePlots(etaMin, etaMax, phiMin, phiMax, h2HcalTpgs, h2EcalTpgs, h2OldClusters, h2NewClusters, h2LeadingOld, h2LeadingNew, event, saveFile);
 
-    // /*
-    //  * Do plots centered around the leading cluster in the NEW emulator
-    //  */
-    // if (vNewClusters->size() > 0) {
-    //     etaCenter = vNewClusters->at(0).Eta();
-    //     phiCenter = vNewClusters->at(0).Phi();
-    // }
-    // printf("[INFO:] Centering plot on leading cluster in NEW emulator at %f, %f.....", etaCenter, phiCenter);
-    // (hasLargeDeltaR) ?  sprintf(name, "Event %u (centered on new emu cluster) - large #Delta R", event) :
-    //                     sprintf(name, "Event %u (centered on new emu cluster)", event);
-    // h2HcalTpgs->SetTitle(name);
-    // (hasLargeDeltaR) ? sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/printClusterInfo/Event-%u-largeDeltaR_newLeadingCluster.pdf",event) :
-    //                    sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/printClusterInfo/Event-%u-newLeadingCluster.pdf",event);
-    // makePlots(etaCenter, phiCenter, h2HcalTpgs, h2EcalTpgs, h2OldClusters, h2NewClusters, event, saveFile);
+        printf("[INFO:] Centering plot on leading cluster in old emulator at %f, %f.....", etaCenter, phiCenter);
+
+    }
+    (hasLargeDeltaR) ?  sprintf(name, "Event %u - large #Delta R", event) :
+                        sprintf(name, "Event %u", event);
+    h2HcalTpgs->SetTitle(name);
+    (hasLargeDeltaR) ? sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/printClusterInfo/Event-%u-largeDeltaR.pdf",event) :
+                       sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/printClusterInfo/Event-%u.pdf",event);
+    makePlots(etaMin, etaMax, phiMin, phiMax, oldLeadingClusterEta, oldLeadingClusterPhi, newLeadingClusterEta, newLeadingClusterPhi, h2HcalTpgs, h2EcalTpgs, h2OldClusters, h2NewClusters, h2LeadingOld, h2LeadingNew, event, saveFile);
+
+
 
     
 }
