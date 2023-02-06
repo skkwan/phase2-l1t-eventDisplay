@@ -8,7 +8,7 @@ def main():
 
     inFile = "singleAnalyzer.root"
 
-    for eventIndex in range(5):
+    for eventIndex in range(10):
         cmd = "root -l -b -q 'plotEventDisplayPhase2ECALCrystals.cpp(\"{}\", {})'".format(inFile, eventIndex)
         print(cmd)
         os.system(cmd)

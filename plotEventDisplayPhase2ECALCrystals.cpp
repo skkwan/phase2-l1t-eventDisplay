@@ -197,18 +197,18 @@ int makeSmallerPlotInPad(float etaMin, float etaMax, float phiMin, float phiMax,
         h2OldRelIso_leading->SetBarOffset(-1.5 * barOffset);
         h2OldRelIso_leading->Draw("SAME TEXT");
 
-        h2OldIsoFlag_leading->SetMarkerSize(0.7*textSize);
-        h2OldIsoFlag_leading->SetBarOffset(-2 * barOffset);
-        h2OldIsoFlag_leading->Draw("SAME TEXT");
+        // h2OldIsoFlag_leading->SetMarkerSize(0.7*textSize);
+        // h2OldIsoFlag_leading->SetBarOffset(-2 * barOffset);
+        // h2OldIsoFlag_leading->Draw("SAME TEXT");
 
 
         h2NewRelIso_leading->SetMarkerSize(0.7*textSize);
         h2NewRelIso_leading->SetBarOffset(1.5 * barOffset);
         h2NewRelIso_leading->Draw("SAME TEXT");
 
-        h2NewIsoFlag_leading->SetMarkerSize(0.7*textSize);
-        h2NewIsoFlag_leading->SetBarOffset(2 * barOffset);
-        h2NewIsoFlag_leading->Draw("SAME TEXT");
+        // h2NewIsoFlag_leading->SetMarkerSize(0.7*textSize);
+        // h2NewIsoFlag_leading->SetBarOffset(2 * barOffset);
+        // h2NewIsoFlag_leading->Draw("SAME TEXT");
 
     }
     else {
@@ -579,7 +579,7 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
     }
 
     // If the leading clusters are in the wrong position, make a note of this
-    bool hasLargeDeltaR = isLeadingDeltaRLarge(vOldClusters, vNewClusters, 0.5);
+    bool hasLargeDeltaR = isLeadingDeltaRLarge(vOldClusters, vNewClusters, 0.1);
     printf("[INFO:] hasLargeDeltaR: (0 if false, 1 if true) %i\n", hasLargeDeltaR);
 
     /*
