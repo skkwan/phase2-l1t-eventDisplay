@@ -18,6 +18,11 @@ float deltaPhi(T v1, T v2, const T c = M_PI) {
 }
 
 
+float deltaR(float eta1, float eta2, float phi1, float phi2) {
+    return sqrt(pow(eta1 - eta2, 2) + pow(deltaPhi(phi1, phi2), 2));
+
+}
+
 bool isLeadingDeltaRLarge(const std::vector<TLorentzVector> *v1, const std::vector<TLorentzVector> *v2, float thresholdDeltaR = 0.5) {
 
     if ((v1->size() > 0) && (v2->size() > 0)) {

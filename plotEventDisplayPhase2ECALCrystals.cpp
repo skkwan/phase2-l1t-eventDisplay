@@ -155,15 +155,17 @@ int makeSmallerPlotInPad(float etaMin, float etaMax, float phiMin, float phiMax,
     h2EcalTpgs->Draw("SAME BOX");
     h2EcalTpgs2->SetLineColor(kPink+1);
     h2EcalTpgs2->SetLineWidth(1);
+    h2EcalTpgs2->SetMarkerColor(kBlack);
+    h2EcalTpgs2->SetMarkerSize(textSize * 0.5);
     h2EcalTpgs2->Draw("SAME BOXL");
 
     // Plot the new clusters: filled-in only no outlines
     TH2F* h2NewClusters = (TH2F*) h2NewClusters_original->Clone();
     h2NewClusters->Draw("SAME BOX");
     h2NewClusters->SetMarkerColor(kRed-5);
-    h2NewClusters->SetMarkerSize(textSize * 0.8);
-    h2NewClusters->SetBarOffset(barOffset*2);
-    h2NewClusters->Draw("SAME TEXT");
+    h2NewClusters->SetMarkerSize(textSize * 0.7);
+    h2NewClusters->SetBarOffset(barOffset);
+    h2NewClusters->Draw("SAME TEXT45");
  
     // // Plot the old clusters
     // TH2F* h2OldClusters = (TH2F*) h2OldClusters_original->Clone();
@@ -178,7 +180,7 @@ int makeSmallerPlotInPad(float etaMin, float etaMax, float phiMin, float phiMax,
     h2LeadingNew->Draw("SAME BOX");
     h2LeadingNew->SetMarkerColor(kRed);
     h2LeadingNew->SetMarkerSize(textSize);
-    h2LeadingNew->SetBarOffset(barOffset);
+    h2LeadingNew->SetBarOffset(2 * barOffset);
     h2LeadingNew->Draw("SAME TEXT");
 
     // leading old cluster
@@ -186,14 +188,14 @@ int makeSmallerPlotInPad(float etaMin, float etaMax, float phiMin, float phiMax,
     h2LeadingOld->Draw("SAME BOX");
     h2LeadingOld->SetMarkerColor(kBlue);
     h2LeadingOld->SetMarkerSize(textSize);
-    h2LeadingOld->SetBarOffset(-1 * barOffset);
+    h2LeadingOld->SetBarOffset(-2 * barOffset);
     h2LeadingOld->Draw("SAME TEXT");
 
 
     // If specified, also show isolation information
     if (showIso) {
-        h2OldRawIso_leading->SetMarkerSize(0.7*textSize);
-        h2OldRawIso_leading->SetBarOffset(-1.5 * barOffset);
+        h2OldRawIso_leading->SetMarkerSize(0.5*textSize);
+        h2OldRawIso_leading->SetBarOffset(-2.8 * barOffset);
         h2OldRawIso_leading->Draw("SAME TEXT");
 
         // h2OldIsoFlag_leading->SetMarkerSize(0.7*textSize);
@@ -201,8 +203,8 @@ int makeSmallerPlotInPad(float etaMin, float etaMax, float phiMin, float phiMax,
         // h2OldIsoFlag_leading->Draw("SAME TEXT");
 
 
-        h2NewRawIso_leading->SetMarkerSize(0.7*textSize);
-        h2NewRawIso_leading->SetBarOffset(1.5 * barOffset);
+        h2NewRawIso_leading->SetMarkerSize(0.5*textSize);
+        h2NewRawIso_leading->SetBarOffset(1.2 * barOffset);
         h2NewRawIso_leading->Draw("SAME TEXT");
 
         // h2NewIsoFlag_leading->SetMarkerSize(0.7*textSize);
@@ -232,7 +234,7 @@ int makePlots(float etaMin, float etaMax, float phiMin, float phiMax,
               TH2F* h2OldRawIso_leading =  NULL, TH2F* h2OldIsoFlag_leading = NULL,
               TH2F* h2NewRawIso_leading = NULL, TH2F* h2NewIsoFlag_leading = NULL) {
     // Create a new canvas.
-    TCanvas *c1 = new TCanvas("c1","eta vs phi",4000,8000);
+    TCanvas *c1 = new TCanvas("c1","eta vs phi",4000,5000);
     
     c1->SetFillColor(0);
     c1->GetFrame()->SetFillColor(0);
@@ -242,41 +244,41 @@ int makePlots(float etaMin, float etaMax, float phiMin, float phiMax,
     char name[100];
 
 
-    TPad *pad1 = new TPad("pad1","This is pad1",0.05,0.66,0.95,0.99);
-    TPad *pad2 = new TPad("pad2","This is pad2",0.05,0.33,0.95,0.66);
-    TPad *pad3 = new TPad("pad2","This is pad2",0.05,0.02,0.95,0.33);
+    TPad *pad1 = new TPad("pad1","This is pad1",0.05,0.8,1,1);
+    TPad *pad2 = new TPad("pad2","This is pad2",0.05,0,1,0.8);
+    // TPad *pad3 = new TPad("pad2","This is pad2",0.05,0.02,0.95,0.33);
 
 
     pad1->Draw();
     pad2->Draw();
-    pad3->Draw();
+    // pad3->Draw();
 
     pad1->cd();
-    float barOffset = 10.0;   
-    makeSmallerPlotInPad(-1.4841, 1.4841, -3.14, 3.14,
-                        h2HcalTpgs, h2EcalTpgs, h2OldClusters, h2NewClusters,
-                        h2LeadingOld, h2LeadingNew, barOffset);
-    
-    float xR = 0.8;
-    TLegend *l = new TLegend(xR, 0.9, xR+0.2, 1.0);
-    l->SetTextSize(0.03);
 
-    l->AddEntry(h2EcalTpgs,   "ECAL Crystals",   "F");
-    l->AddEntry(h2HcalTpgs,   "HCAL Towers",     "F");
-    l->AddEntry(h2NewClusters, "New Clusters", "F");
+    float xR = 0.0;
+    TLegend *l = new TLegend(xR, 0.1, xR+1., 0.9);
+    l->SetTextSize(0.13);
+
+    l->AddEntry(h2EcalTpgs,   "ECAL crystals",   "F");
+    l->AddEntry(h2HcalTpgs,   "HCAL towers",     "F");
+    TLegendEntry *ent1 = l->AddEntry(h2LeadingNew, "New leading cluster pT (GeV) #scale[0.6]{(with raw iso (GeV) in small text)}", "F");
+    ent1->SetTextColor(kRed);
+    TLegendEntry *ent2 = l->AddEntry(h2NewClusters, "other sub-leading clusters in new emu, pT (GeV)", "F");
+    ent2->SetTextColor(kRed-3);
     // l->AddEntry(h2L1Towers,   "New Towers",   "F");
-    l->AddEntry(h2OldClusters, "Old Clusters", "F");
+    TLegendEntry *ent3 = l->AddEntry(h2LeadingOld, "Old leading cluster pT (GeV) #scale[0.6]{(with raw iso (GeV) in small text)}", "F");
+    ent3->SetTextColor(kBlue);
     l->Draw();
     c1->Update();
 
-    bool showIsoInfo = true;
-
-    // PLOT AROUND OLD EMU LEADING CLUSTER
     pad2->cd();
-    barOffset = 2.5;
-    sprintf(name, "Event %u: old emulator leading cluster", event);
+
+    float barOffset = 2.5;
+    bool showIsoInfo = true;
+    sprintf(name, "Event %u", event);
     h2HcalTpgs->SetTitle(name);
-    makeSmallerPlotInPad(oldEtaCenter-0.25, oldEtaCenter+0.25, oldPhiCenter-0.25, oldPhiCenter+0.25,
+    float quadrantSize = 0.4;
+    makeSmallerPlotInPad(oldEtaCenter-quadrantSize, oldEtaCenter+quadrantSize, oldPhiCenter-quadrantSize, oldPhiCenter+quadrantSize,
                         h2HcalTpgs, h2EcalTpgs, h2OldClusters, h2NewClusters,
                         h2LeadingOld, h2LeadingNew, barOffset, 2.4, showIsoInfo,
                         h2OldRawIso, h2OldIsoFlag, h2NewRawIso, h2NewIsoFlag,
@@ -284,22 +286,39 @@ int makePlots(float etaMin, float etaMax, float phiMin, float phiMax,
                         h2NewRawIso_leading, h2NewIsoFlag_leading);
     c1->Update();
 
-    // PLOT AROUND NEW EMU LEADING CLUSTER
-    pad3->cd();
-    barOffset = 2.5;
-    sprintf(name, "Event %u: new emulator leading cluster", event);
-    h2HcalTpgs->SetTitle(name);
-    makeSmallerPlotInPad(newEtaCenter-0.25, newEtaCenter+0.25, newPhiCenter-0.25, newPhiCenter+0.25,
-                        h2HcalTpgs, h2EcalTpgs, h2OldClusters, h2NewClusters,
-                        h2LeadingOld, h2LeadingNew, barOffset, 2.4, showIsoInfo,
-                        h2OldRawIso, h2OldIsoFlag, h2NewRawIso, h2NewIsoFlag,
-                        h2OldRawIso_leading, h2OldIsoFlag_leading,
-                        h2NewRawIso_leading, h2NewIsoFlag_leading);
+   
+
+  
+
+    // // PLOT AROUND OLD EMU LEADING CLUSTER
+    // pad2->cd();
+    // barOffset = 2.5;
+    // sprintf(name, "Event %u: old emulator leading cluster", event);
+    // h2HcalTpgs->SetTitle(name);
+    // makeSmallerPlotInPad(oldEtaCenter-0.25, oldEtaCenter+0.25, oldPhiCenter-0.25, oldPhiCenter+0.25,
+    //                     h2HcalTpgs, h2EcalTpgs, h2OldClusters, h2NewClusters,
+    //                     h2LeadingOld, h2LeadingNew, barOffset, 2.4, showIsoInfo,
+    //                     h2OldRawIso, h2OldIsoFlag, h2NewRawIso, h2NewIsoFlag,
+    //                     h2OldRawIso_leading, h2OldIsoFlag_leading,
+    //                     h2NewRawIso_leading, h2NewIsoFlag_leading);
+    // c1->Update();
+
+    // // PLOT AROUND NEW EMU LEADING CLUSTER
+    // pad3->cd();
+    // barOffset = 2.5;
+    // sprintf(name, "Event %u: new emulator leading cluster", event);
+    // h2HcalTpgs->SetTitle(name);
+    // makeSmallerPlotInPad(newEtaCenter-0.25, newEtaCenter+0.25, newPhiCenter-0.25, newPhiCenter+0.25,
+    //                     h2HcalTpgs, h2EcalTpgs, h2OldClusters, h2NewClusters,
+    //                     h2LeadingOld, h2LeadingNew, barOffset, 2.4, showIsoInfo,
+    //                     h2OldRawIso, h2OldIsoFlag, h2NewRawIso, h2NewIsoFlag,
+    //                     h2OldRawIso_leading, h2OldIsoFlag_leading,
+    //                     h2NewRawIso_leading, h2NewIsoFlag_leading);
 
 
    
 
-    c1->Update();
+    // c1->Update();
     c1->SaveAs(saveFile);    
     delete c1;
 
@@ -446,7 +465,7 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
 
     // leading clusters should stand out
     h2LeadingNew->SetFillStyle(1001);
-    h2LeadingNew->SetFillColorAlpha(kRed, 0.5);
+    h2LeadingNew->SetFillColorAlpha(kRed, 1.0);
 
     h2OldIsoFlag->SetMarkerColor(kBlack);
 
@@ -522,8 +541,9 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
     assert(vNewClusters->size() == vNewIsoFlag->size());
     for (unsigned int j = 1; j < vNewClusters->size(); ++j) {  // only save non-leading clusters
     //for (unsigned int j = 1; j < 2; ++j) { // only get sub-leading cluster
-        if (deltaR(vNewClusters->at(0).Eta(), vNewClusters->at(j).Eta(), vNewClusters->at(0).Phi(), vNewClusters->at(j).Phi()) 
-            < 0.04)  {
+        //if (deltaR(vNewClusters->at(0).Eta(), vNewClusters->at(j).Eta(), vNewClusters->at(0).Phi(), vNewClusters->at(j).Phi()) 
+            // < 0.04)  {
+        //if (vNewClusters->at(j).Pt() > 10) {
                 float ceta = vNewClusters->at(j).Eta();
                 float cphi = vNewClusters->at(j).Phi();
                 float cpt  = vNewClusters->at(j).Pt();
@@ -536,7 +556,7 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
                 
 
                 std::printf("vNewClusters->at(%i).Pt() %f eta %f phi %f with raw iso %f (is_iso: %f)\n", j, cpt, ceta, cphi, iso, is_iso);
-                }
+              //  }
     }
 
 
@@ -639,8 +659,22 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
     (hasLargeDeltaR) ?  sprintf(name, "Event %u - large #Delta R", event) :
                         sprintf(name, "Event %u", event);
     h2HcalTpgs->SetTitle(name);
-    (hasLargeDeltaR) ? sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/printClusterInfo/Event-%u-largeDeltaR.pdf",event) :
-                       sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/printClusterInfo/Event-%u.pdf",event);
+    if ((oldLeadingClusterIsoFlag == 0) && (newLeadingClusterIsoFlag == 1)) {
+        if (hasLargeDeltaR) {
+            sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/minbias1000events/newIsoFlagTrue/Event-%u-largeDeltaR.pdf",event); 
+        }
+        else {
+            sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/minbias1000events/newIsoFlagTrue/Event-%u.pdf",event); 
+        }
+    }
+    else {
+        if (hasLargeDeltaR) {
+            sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/minbias1000events/newIsoFlagFalse/Event-%u-largeDeltaR.pdf",event);
+        }
+        else {
+            sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/minbias1000events/newIsoFlagFalse/Event-%u.pdf",event);
+        }
+    }
     makePlots(etaMin, etaMax, phiMin, phiMax, oldLeadingClusterEta, oldLeadingClusterPhi, newLeadingClusterEta, newLeadingClusterPhi, h2HcalTpgs, h2EcalTpgs, h2OldClusters, h2NewClusters, h2LeadingOld, h2LeadingNew, event, saveFile,
               h2OldRawIso, h2OldIsoFlag, h2NewRawIso, h2NewIsoFlag,
               h2OldRawIso_leading, h2OldIsoFlag_leading,
