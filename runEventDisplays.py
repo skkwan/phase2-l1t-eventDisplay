@@ -6,9 +6,9 @@ def main():
     display stored as vectors of TLorentzVectors.
     """
 
-    inFile = "/eos/user/s/skkwan/phase2RCTDevel/analyzer.root"
+    inFile = "singleAnalyzer_10_events_noRawiso.root"
 
-    for eventIndex in range(10):
+    for eventIndex in range(1):
         cmd = "root -l -b -q 'plotEventDisplayPhase2ECALCrystals.cpp(\"{}\", {})'".format(inFile, eventIndex)
         print(cmd)
         os.system(cmd)

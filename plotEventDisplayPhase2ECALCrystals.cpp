@@ -348,14 +348,14 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
     std::vector<TLorentzVector> *vHcalTpgs       = 0;
 
     std::vector<TLorentzVector> *vOldClusters     = 0;
-    // std::vector<TLorentzVector> *vOldTowers       = 0;
-    std::vector<float> *vOldRawIso = 0;
+    std::vector<TLorentzVector> *vOldTowers       = 0;
+    //    std::vector<float> *vOldRawIso = 0;
     std::vector<bool> *vOldIsoFlag = 0;
 
     std::vector<TLorentzVector> *vNewClusters       = 0;
     std::vector<TLorentzVector> *vNewTowers         = 0;
     std::vector<float> *vNewRawIso = 0;
-    //std::vector<bool> *vNewIsoFlag = 0;
+    std::vector<bool> *vNewIsoFlag = 0;
 
     int event = 0;
 
@@ -366,13 +366,13 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
     t->SetBranchAddress("ecalTPGs",&vEcalTpgs);
     t->SetBranchAddress("hcalTPGs",&vHcalTpgs);
     t->SetBranchAddress("oldClusters",&vOldClusters);
-    //t->SetBranchAddress("oldRawIso", &vOldRawIso);
+    // t->SetBranchAddress("oldRawIso", &vOldRawIso);
     t->SetBranchAddress("oldIsoFlag", &vOldIsoFlag);
-    // t->SetBranchAddress("oldTowers",&vOldTowers);
+    t->SetBranchAddress("oldTowers",&vOldTowers);
     t->SetBranchAddress("newClusters",&vNewClusters);
-    //t->SetBranchAddress("newTowers",&vNewTowers);
-    //t->SetBranchAddress("newRawIso", &vNewRawIso);
-    //t->SetBranchAddress("newIsoFlag", &vNewIsoFlag);
+    t->SetBranchAddress("newTowers",&vNewTowers);
+    t->SetBranchAddress("newRawIso", &vNewRawIso);
+    t->SetBranchAddress("newIsoFlag", &vNewIsoFlag);
 
     TH2F *h2EcalTpgs = new TH2F("h2EcalTpgs","Event Display",(34*5), //(90*2), //64*2
                                 -1.4841, 1.4841,
@@ -568,7 +568,7 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
 
     // Get the old emulator clusters
     float oldLeadingClusterEta, oldLeadingClusterPhi, oldLeadingClusterPt, oldLeadingClusterIso, oldLeadingClusterIsoFlag;
-    assert(vOldClusters->size() == vOldRawIso->size());
+    // assert(vOldClusters->size() == vOldRawIso->size());
     assert(vOldClusters->size() == vOldIsoFlag->size());
     for (unsigned int j = 1; j < vOldClusters->size(); ++j) { // only save non-leading clusters
     //for (unsigned int j = 1; j < 2; ++j) { // only get sub-leading cluster
