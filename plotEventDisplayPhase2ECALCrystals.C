@@ -438,8 +438,6 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
     if (ecalMinPt > 0){
         std::printf("[INFO:] plotEventDisplayPhaseIIecalCrystals.C: do not show ECAL TPGs with energy under %f GeV", ecalMinPt);
     }
-    // Sort them
-    //std::sort(vEcalTpgs->begin(), vEcalTpgs->end(), comparePt);
 
     for (unsigned int j = 0; j < vEcalTpgs->size(); ++j) {
         if (vEcalTpgs->at(j).Pt() > ecalMinPt) {
@@ -457,7 +455,6 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
     if (hcalMinPt > 0){
         std::printf("[INFO:] plotEventDisplayPhaseIIecalCrystals.C: do not show HCAL TPGs with energy under %f GeV", hcalMinPt);
     }
-    //std::sort(vHcalTpgs->begin(), vHcalTpgs->end(), comparePt);
 
 
     for (UInt_t j = 0; j < vHcalTpgs->size(); ++j) {
@@ -468,11 +465,6 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
 
             h2HcalTpgs->Fill(ceta, cphi, cpt);
 
-            // if ((ceta > (etaCenter - 0.25)) && (ceta < (etaCenter + 0.25))
-            //     && (cphi > (phiCenter - 0.25)) && (cphi < (phiCenter + 0.25))) {
-
-            //     // std::printf("vHcalTpgs->at(j).Pt() %f eta %f phi %f\n", cpt, ceta, cphi);
-            // }
         }
     }
 
@@ -484,7 +476,7 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
 
     std::printf("[INFO:] Found %zu new emulator clusters...\n",  vNewClusters->size());
 
-    for (unsigned int j = 1; j < vNewClusters->size(); ++j) {  // only save non-leading clusters
+    for (unsigned int j = 0; j < vNewClusters->size(); ++j) {  // only save non-leading clusters
 
         float ceta = vNewClusters->at(j).Eta();
         float cphi = vNewClusters->at(j).Phi();
@@ -509,8 +501,7 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
     float oldLeadingClusterEta = 0;
     float oldLeadingClusterPhi = 0;
     float oldLeadingClusterPt = 0;
-    for (unsigned int j = 1; j < vOldClusters->size(); ++j) { // only save non-leading clusters
-    //for (unsigned int j = 1; j < 2; ++j) { // only get sub-leading cluster
+    for (unsigned int j = 0; j < vOldClusters->size(); ++j) {
        if (deltaR(vOldClusters->at(0).Eta(), vOldClusters->at(j).Eta(), vOldClusters->at(0).Phi(), vOldClusters->at(j).Phi()) 
             < 0.04)  {
 
@@ -533,10 +524,6 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
         h2LeadingOld->Fill(oldLeadingClusterEta, oldLeadingClusterPhi, oldLeadingClusterPt);
     }
 
-    // If the leading clusters are in the wrong position, make a note of this
-    bool hasLargeDeltaR = isLeadingDeltaRLarge(vOldClusters, vNewClusters, 0.1);
-    printf("[INFO:] hasLargeDeltaR: (0 if false, 1 if true) %i\n", hasLargeDeltaR);
-
     /*
      * Do plots that show both clusters (dynamically adjusting the scope if they are far apart).
      */
@@ -546,51 +533,20 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
 
     etaCenter = oldLeadingClusterEta;
     phiCenter = oldLeadingClusterPhi;
-    if (hasLargeDeltaR) {
-        etaMin = std::min(oldLeadingClusterEta, newLeadingClusterEta) - 0.6;
-        etaMax = std::max(oldLeadingClusterEta, newLeadingClusterEta) + 0.6;
-        phiMin = std::min(oldLeadingClusterPhi, newLeadingClusterPhi) - 0.6;
-        phiMax = std::max(oldLeadingClusterPhi, newLeadingClusterPhi) + 0.6;
+    
+    etaMin = etaCenter - 0.25;
+    etaMax = etaCenter + 0.25;
+    phiMin = phiCenter - 0.25;
+    phiMax = phiCenter + 0.25;
 
-        // Use the larger of the two dimensions to determine the square-shaped window
-        float etaMidpoint = (etaMin + etaMax) / 2;
-        float phiMidpoint = (phiMin + phiMax) / 2;
+    printf("[INFO:] Centering plot on leading cluster in old emulator at %f, %f.....", etaCenter, phiCenter);
 
-        float myWidth = 0.5 + std::max(etaMax - etaMin, phiMax - phiMin);
-        etaMin = etaMidpoint - (myWidth/2);
-        etaMax = etaMidpoint + (myWidth/2);
-        phiMin = phiMidpoint - (myWidth/2);
-        phiMax = phiMidpoint + (myWidth/2);
-
-        etaMin = -1.4841;
-        etaMax = +1.4841;
-
-        phiMin = -3.14;
-        phiMax = 3.14;
-
-        printf("[INFO:] Creating custom range to show both clusters, old (%f, %f) and new (%f, %f).....\n", oldLeadingClusterEta, oldLeadingClusterPhi, newLeadingClusterEta, newLeadingClusterPhi);
-        printf("[INFO:] Calculated eta range to be %f to %f, and phi range to be %f to %f\n", etaMin, etaMax, phiMin, phiMax);
-
-    }
-    else {
-        etaMin = etaCenter - 0.25;
-        etaMax = etaCenter + 0.25;
-        phiMin = phiCenter - 0.25;
-        phiMax = phiCenter + 0.25;
-
-        printf("[INFO:] Centering plot on leading cluster in old emulator at %f, %f.....", etaCenter, phiCenter);
-
-    }
-    (hasLargeDeltaR) ?  sprintf(name, "Event %u - large #Delta R", event) :
-                        sprintf(name, "Event %u", event);
+    
+    sprintf(name, "Event %u", event);
     h2HcalTpgs->SetTitle(name);
-    if (hasLargeDeltaR) {
-        sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/signal-DoubleElectron_FlatPt-1To100_PU200/Event-%u-largeDeltaR.pdf",event);
-    }
-    else {
-        sprintf(saveFile, "/eos/user/s/skkwan/phase2RCTDevel/eventsSingleAnalyzer/signal-DoubleElectron_FlatPt-1To100_PU200/Event-%u.pdf",event);
+    sprintf(saveFile, "event-%u.pdf",event);
 
-    }
+    
     makePlots(etaMin, etaMax, phiMin, phiMax, oldLeadingClusterEta, oldLeadingClusterPhi, newLeadingClusterEta, newLeadingClusterPhi, h2HcalTpgs, h2EcalTpgs, h2OldClusters, h2NewClusters, h2LeadingOld, h2LeadingNew, event, saveFile);
 
 
