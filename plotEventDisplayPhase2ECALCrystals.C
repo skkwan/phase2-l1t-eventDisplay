@@ -29,14 +29,12 @@
 #pragma link C++ class std::vector<bool>+;
 #endif
 
-
 static bool comparePt(const TLorentzVector& lhs, const TLorentzVector& rhs) {
     return ( lhs.Pt() > rhs.Pt() );
 }
 
-
 template <typename T> 
-float deltaPhi(T v1, T v2, const T c = M_PI) {
+float deltaPhi(T v1, T v2, const T c = 3.142) {
     auto r = std::fmod(v2 - v1, 2.0 * c);
     if (r < -c) {
         r += 2.0 * c;
@@ -329,9 +327,9 @@ int makePlots(float etaMin, float etaMax, float phiMin, float phiMax,
 void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
 
     // Necessary to declare dictionary, else ROOT complains about reading a custom class
-    gInterpreter->GenerateDictionary("std::vector<TLorentzVector>", "vector");
-    gInterpreter->GenerateDictionary("std::vector<float>", "vector");
-    gInterpreter->GenerateDictionary("std::vector<bool>", "vector");
+    //gInterpreter->GenerateDictionary("std::vector<TLorentzVector>", "vector");
+    //gInterpreter->GenerateDictionary("std::vector<float>", "vector");
+    //gInterpreter->GenerateDictionary("std::vector<bool>", "vector");
 
   
     gStyle->SetOptStat(0);
@@ -361,7 +359,6 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
     const Int_t kUPDATE = 1000;
 
     t->SetBranchAddress("event",&event);
-
     t->SetBranchAddress("ecalTPGs",&vEcalTpgs);
     t->SetBranchAddress("hcalTPGs",&vHcalTpgs);
     t->SetBranchAddress("oldClusters",&vOldClusters);
@@ -436,14 +433,13 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
     t->GetEntry(tentry);
     std::printf("Event %i\n", event);
 
-
     // Get ECAL TPGs
     double ecalMinPt = 0;
     if (ecalMinPt > 0){
         std::printf("[INFO:] plotEventDisplayPhaseIIecalCrystals.C: do not show ECAL TPGs with energy under %f GeV", ecalMinPt);
     }
     // Sort them
-    std::sort(vEcalTpgs->begin(), vEcalTpgs->end(), comparePt);
+    //std::sort(vEcalTpgs->begin(), vEcalTpgs->end(), comparePt);
 
     for (unsigned int j = 0; j < vEcalTpgs->size(); ++j) {
         if (vEcalTpgs->at(j).Pt() > ecalMinPt) {
@@ -461,7 +457,7 @@ void plotEventDisplayPhase2ECALCrystals(const char* inFile, int iEvent){
     if (hcalMinPt > 0){
         std::printf("[INFO:] plotEventDisplayPhaseIIecalCrystals.C: do not show HCAL TPGs with energy under %f GeV", hcalMinPt);
     }
-    std::sort(vHcalTpgs->begin(), vHcalTpgs->end(), comparePt);
+    //std::sort(vHcalTpgs->begin(), vHcalTpgs->end(), comparePt);
 
 
     for (UInt_t j = 0; j < vHcalTpgs->size(); ++j) {
